@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Custom端下单面板高保真交互原型">
+  <title>Custom Client Prototype</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="i-trade" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 9h10M14 6l3 3-3 3M17 15H7M10 12l-3 3 3 3"/></symbol>
+    <symbol id="i-data" viewBox="0 0 24 24"><ellipse cx="10" cy="6" rx="6" ry="3"/><path d="M4 6v8c0 1.7 2.7 3 6 3 1.1 0 2.2-.2 3-.5M4 10c0 1.7 2.7 3 6 3"/><circle cx="17" cy="16" r="4"/><path d="m20 19 2 2"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2c0-3.3 3.1-6 7-6s7 2.7 7 6v2"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M4 9a12 12 0 0 1 16 0M7 13a8 8 0 0 1 10 0M10 17a3 3 0 0 1 4 0"/><circle cx="12" cy="20" r=".8" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v9M6.6 5.6a8 8 0 1 0 10.8 0"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="m15 4 5 5-3 1-4 4 1 4-1 1-8-8 1-1 4 1 4-4Z"/><path d="m9 15-5 5"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 8A7 7 0 0 1 18 6l2 6M18 16a7 7 0 0 1-12 2l-2-6"/></symbol>
+  </svg>
+
+  <div class="desktop-shell">
+    <header class="titlebar">
+      <div class="brand-logo">m</div>
+      <div class="product-name">对冲台客户端 · Custom原型</div>
+      <div class="user-label"><svg><use href="#i-user"></use></svg><span>Custom Demo</span></div>
+      <div class="titlebar-tools" aria-label="系统状态">
+        <span class="shirt">●</span>
+        <svg><use href="#i-wifi"></use></svg>
+        <svg><use href="#i-lock"></use></svg>
+        <svg><use href="#i-power"></use></svg>
+        <i></i><span>—</span><span>□</span><span class="close">×</span>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <nav>
+        <button class="nav-item active" data-view="trade" type="button">
+          <svg><use href="#i-trade"></use></svg><span>交易</span>
+        </button>
+        <button class="nav-item" data-view="data" type="button">
+          <svg><use href="#i-data"></use></svg><span>数据</span>
+        </button>
+      </nav>
+      <button class="nav-item system" data-view="system" type="button">
+        <svg><use href="#i-settings"></use></svg><span>系统</span>
+      </button>
+    </aside>
+
+    <main class="workspace">
+      <section class="top-grid">
+        <article class="panel asset-panel">
+          <header class="panel-title">账户资产</header>
+          <div class="account-line">
+            <span>交易对手名称：<b>Custom Demo</b></span>
+            <span class="currency">CNY</span>
+            <span>等值 人民币</span>
+            <svg><use href="#i-chevron"></use></svg>
+          </div>
+          <div class="asset-metrics">
+            <div><span>净资产</span><strong class="blue">999,951,547,406.03</strong></div>
+            <div><span>可用资金</span><strong class="orange">999,950,917,094.83</strong></div>
+            <div><span>期初资金</span><strong>999,950,602,606.03</strong></div>
+            <div><span>持仓市值</span><strong>1,869,768.00</strong></div>
+            <div><span>实现盈亏</span><strong class="green">0.00</strong></div>
+            <div><span>浮动盈亏</span><strong class="orange">944,800.00</strong></div>
+          </div>
+          <button class="all-filter active" type="button">全部</button>
+          <div class="asset-table-wrap">
+            <table class="data-table asset-table">
+              <thead><tr><th>序列</th><th>资金账号</th><th>柜架名称</th><th>标的代码</th><th>标的名称</th><th>币种</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000001</td><td>平安银行</td><td>CNY</td></tr>
+                <tr><td>2</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000002</td><td>万科A</td><td>CNY</td></tr>
+                <tr><td>3</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000004</td><td>国华退</td><td>CNY</td></tr>
+                <tr><td>4</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000010</td><td>*ST美丽</td><td>CNY</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel quote-panel">
+          <header class="panel-title">五档行情</header>
+          <div class="quote-symbol"><span>平安银行</span><b>000001.SZ</b><svg><use href="#i-swap"></use></svg></div>
+          <div class="quote-main"><strong>10.80</strong><span>0.01<br>0.09%</span></div>
+          <div class="quote-stats">
+            <span>最高</span><b class="orange">10.85</b><span>最低</span><b class="green">10.74</b>
+            <span>今开</span><b class="green">10.76</b><span>昨收</span><b>10.79</b>
+            <span>涨停</span><b>11.87</b><span>跌停</span><b>9.71</b>
+            <span>总手</span><b>312,096</b><span>总额</span><b>337,335,870.29</b>
+            <span>换手</span><b>0.16%</b>
+          </div>
+          <div class="order-book">
+            <div class="book-side bid"><header>买盘</header>
+              <p><em>1</em><b>10.79</b><span>9993</span></p><p><em>2</em><b>10.78</b><span>11638</span></p><p><em>3</em><b>10.77</b><span>3193</span></p><p><em>4</em><b>10.76</b><span>5232</span></p><p><em>5</em><b>10.75</b><span>6103</span></p>
+            </div>
+            <div class="book-side ask"><header>卖盘</header>
+              <p><em>1</em><b>10.80</b><span>4420</span></p><p><em>2</em><b>10.81</b><span>4398</span></p><p><em>3</em><b>10.82</b><span>8139</span></p><p><em>4</em><b>10.83</b><span>3957</span></p><p><em>5</em><b>10.84</b><span>7860</span></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel order-panel">
+          <header class="panel-title">交易下单</header>
+          <div class="order-tabs"><button class="active" type="button">普通交易</button><button type="button">空头交易</button></div>
+          <div class="form-grid">
+            <label>资金账号</label><select><option>DEMO-04501</option></select>
+            <label>订单类型</label><select><option>限价单</option><option>市价单</option></select>
+            <label>标的代码</label><select><option>000001.SZ 平安银行</option><option>000002.SZ 万科A</option></select>
+            <label>订单方向</label><div class="direction-switch"><button class="active" data-direction="buy" type="button">买入</button><button data-direction="sell" type="button">卖出</button></div>
+            <label>订单价格 <svg><use href="#i-pin"></use></svg></label><div class="stepper"><button data-step="price" data-delta="-0.01" type="button">−</button><input id="priceInput" value="10.80"><button data-step="price" data-delta="0.01" type="button">＋</button></div>
+            <div></div><div class="limit-hint">等于当前价 0.00%</div>
+            <label>委托数量</label><div class="stepper"><button data-step="quantity" data-delta="-100" type="button">−</button><input id="quantityInput" value="100"><button data-step="quantity" data-delta="100" type="button">＋</button><button class="gear-mini" type="button">⚙</button></div>
+            <div></div><div class="available-hint">可买数量 <b>25,000</b></div>
+            <div></div><div class="ratio-buttons"><button data-ratio=".25" type="button">1/4</button><button data-ratio=".3333" type="button">1/3</button><button data-ratio=".5" type="button">1/2</button><button data-ratio="1" type="button">全仓</button></div>
+            <label>订单模式</label><select><option>LowTouch</option><option>HighTouch</option></select>
+          </div>
+          <button id="expandOrder" class="expand-button" type="button">展开 <svg><use href="#i-chevron"></use></svg></button>
+          <div id="orderExtra" class="order-extra" hidden><span>订单备注</span><input placeholder="选填"></div>
+          <div class="estimate"><span>预计下单金额 <i>CNY</i> <b id="estimateValue">1,080.00</b></span><span>可用资金 <i>CNY</i> 999,950,917,094.83</span></div>
+          <div class="order-actions"><button class="icon-action" type="button"><svg><use href="#i-settings"></use></svg></button><button class="icon-action" type="button"><svg><use href="#i-refresh"></use></svg></button><button id="submitOrder" class="submit-order" type="button">买入</button></div>
+        </article>
+      </section>
+
+      <section class="panel order-list-panel">
+        <header class="panel-title">委托列表</header>
+        <div class="list-toolbar">
+          <div class="list-tabs"><button class="active" type="button">全部(<span id="allCount">0</span>)</button><button type="button">未完成(<span id="pendingCount">0</span>)</button><button class="add-tab" type="button">＋</button></div>
+          <div class="list-actions"><button disabled type="button">撤单</button><button class="primary" id="batchOrder" type="button">批量下单</button></div>
+        </div>
+        <div class="orders-wrap">
+          <table class="data-table orders-table">
+            <thead><tr><th>序列</th><th>□</th><th>资金账号名称</th><th>订单类型</th><th>标的代码</th><th>标的名称</th><th>订单方向</th><th>委托价格</th><th>委托数量</th><th>订单模式</th><th>订单状态</th><th>成交均价</th><th>成交数量</th></tr></thead>
+            <tbody id="orderRows"><tr class="empty-row"><td colspan="13">暂无委托</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <div id="toast" class="toast" role="status"></div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
