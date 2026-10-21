@@ -13,6 +13,14 @@ const orderRows = document.querySelector("#orderRows");
 const allCount = document.querySelector("#allCount");
 const pendingCount = document.querySelector("#pendingCount");
 const toast = document.querySelector("#toast");
+const assetSectorFilter = document.querySelector("#assetSectorFilter");
+
+assetSectorFilter.addEventListener("change", () => {
+  const selectedBoard = assetSectorFilter.value;
+  document.querySelectorAll(".asset-table tbody tr[data-board]").forEach(row => {
+    row.hidden = selectedBoard !== "全部" && row.dataset.board !== selectedBoard;
+  });
+});
 
 document.querySelectorAll(".nav-item").forEach(button => {
   button.addEventListener("click", () => {

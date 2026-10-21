@@ -68,15 +68,30 @@
             <div><span>实现盈亏</span><strong class="green">0.00</strong></div>
             <div><span>浮动盈亏</span><strong class="orange">944,800.00</strong></div>
           </div>
-          <button class="all-filter active" type="button">全部</button>
+          <div class="asset-filter-row">
+            <button class="all-filter active" type="button">全部</button>
+            <label for="assetSectorFilter">板块</label>
+            <select id="assetSectorFilter" class="asset-sector-select" aria-label="按板块筛选持仓">
+              <option value="全部">全部</option>
+              <option value="主板">主板</option>
+              <option value="科创板">科创板</option>
+              <option value="创业板">创业板</option>
+              <option value="港股">港股</option>
+              <option value="美股">美股</option>
+            </select>
+          </div>
           <div class="asset-table-wrap">
             <table class="data-table asset-table">
               <thead><tr><th>序列</th><th>资金账号</th><th>柜架名称</th><th>标的代码</th><th>标的名称</th><th>币种</th></tr></thead>
               <tbody>
-                <tr><td>1</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000001</td><td>平安银行</td><td>CNY</td></tr>
-                <tr><td>2</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000002</td><td>万科A</td><td>CNY</td></tr>
-                <tr><td>3</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000004</td><td>国华退</td><td>CNY</td></tr>
-                <tr><td>4</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000010</td><td>*ST美丽</td><td>CNY</td></tr>
+                <tr data-board="主板"><td>1</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000001</td><td>平安银行</td><td>CNY</td></tr>
+                <tr data-board="主板"><td>2</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000002</td><td>万科A</td><td>CNY</td></tr>
+                <tr data-board="主板"><td>3</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000004</td><td>国华退</td><td>CNY</td></tr>
+                <tr data-board="主板"><td>4</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> 000010</td><td>*ST美丽</td><td>CNY</td></tr>
+                <tr data-board="科创板"><td>5</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SH</i> STAR-DEMO-01</td><td>科创板样例</td><td>CNY</td></tr>
+                <tr data-board="创业板"><td>6</td><td>DEMO-2304</td><td>20260819_C</td><td><i>SZ</i> GEM-DEMO-01</td><td>创业板样例</td><td>CNY</td></tr>
+                <tr data-board="港股"><td>7</td><td>DEMO-2304</td><td>20260819_HK</td><td><i>HK</i> HK-DEMO-01</td><td>港股样例</td><td>HKD</td></tr>
+                <tr data-board="美股"><td>8</td><td>DEMO-2304</td><td>20260819_US</td><td><i>US</i> US-DEMO-01</td><td>美股样例</td><td>USD</td></tr>
               </tbody>
             </table>
           </div>

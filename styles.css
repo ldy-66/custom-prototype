@@ -60,8 +60,10 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .blue { color: #2579ef !important; }
 .orange { color: var(--orange) !important; }
 .green { color: var(--green) !important; }
-.all-filter { width: 81px; height: 27px; margin: 4px 0 6px 8px; border: 0; border-radius: 7px; background: #e9edf1; cursor: pointer; }
+.asset-filter-row { height: 37px; display: flex; align-items: center; gap: 8px; padding: 0 8px; color: #727a83; }
+.all-filter { width: 81px; height: 27px; margin: 0; border: 0; border-radius: 7px; background: #e9edf1; cursor: pointer; }
 .all-filter.active { color: #fff; background: #377ff0; box-shadow: 0 1px 2px rgba(40,94,194,.25); }
+.asset-sector-select { width: 125px; height: 27px; padding: 0 7px; border: 1px solid #bdc3ca; border-radius: 3px; color: #525a64; background: #fff; }
 .asset-table-wrap { height: 187px; overflow: auto; padding: 0 8px; }
 
 .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
