@@ -13,23 +13,31 @@ const orderRows = document.querySelector("#orderRows");
 const allCount = document.querySelector("#allCount");
 const pendingCount = document.querySelector("#pendingCount");
 const toast = document.querySelector("#toast");
-const assetSectorFilter = document.querySelector("#assetSectorFilter");
-
-assetSectorFilter.addEventListener("change", () => {
-  const selectedBoard = assetSectorFilter.value;
-  document.querySelectorAll(".asset-table tbody tr[data-board]").forEach(row => {
-    row.hidden = selectedBoard !== "全部" && row.dataset.board !== selectedBoard;
-  });
-});
+const workspace = document.querySelector(".workspace");
+const tradeWorkspace = document.querySelectorAll("[data-trade-workspace]");
+const holdingsPage = document.querySelector("#holdingsPage");
+const holdingsSectorFilter = document.querySelector("#holdingsSectorFilter");
 
 document.querySelectorAll(".nav-item").forEach(button => {
   button.addEventListener("click", () => {
-    if (button.dataset.view !== "trade") {
+    const view = button.dataset.view;
+    if (view === "system") {
       notify(`${button.textContent.trim()}模块将在对应需求分支继续复刻`);
       return;
     }
-    document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+    document.querySelectorAll(".nav-item:not(.system)").forEach(item => item.classList.remove("active"));
     button.classList.add("active");
+    const isDataView = view === "data";
+    workspace.classList.toggle("data-mode", isDataView);
+    tradeWorkspace.forEach(section => { section.hidden = isDataView; });
+    holdingsPage.hidden = !isDataView;
+  });
+});
+
+document.querySelector("#holdingsSearch").addEventListener("click", () => {
+  const selectedBoard = holdingsSectorFilter.value;
+  document.querySelectorAll("#holdingsRows tr[data-board]").forEach(row => {
+    row.hidden = selectedBoard !== "全部" && row.dataset.board !== selectedBoard;
   });
 });
 

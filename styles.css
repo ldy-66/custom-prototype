@@ -60,10 +60,6 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .blue { color: #2579ef !important; }
 .orange { color: var(--orange) !important; }
 .green { color: var(--green) !important; }
-.asset-filter-row { height: 37px; display: flex; align-items: center; gap: 8px; padding: 0 8px; color: #727a83; }
-.all-filter { width: 81px; height: 27px; margin: 0; border: 0; border-radius: 7px; background: #e9edf1; cursor: pointer; }
-.all-filter.active { color: #fff; background: #377ff0; box-shadow: 0 1px 2px rgba(40,94,194,.25); }
-.asset-sector-select { width: 125px; height: 27px; padding: 0 7px; border: 1px solid #bdc3ca; border-radius: 3px; color: #525a64; background: #fff; }
 .asset-table-wrap { height: 187px; overflow: auto; padding: 0 8px; }
 
 .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -137,6 +133,21 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 
 .toast { position: fixed; left: 50%; bottom: 36px; z-index: 100; padding: 9px 16px; border-radius: 4px; color: #fff; background: rgba(35,40,46,.9); box-shadow: 0 8px 22px rgba(0,0,0,.18); opacity: 0; transform: translate(-50%, 10px); transition: .2s ease; pointer-events: none; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.workspace.data-mode { display: block; }
+[data-trade-workspace][hidden], .data-page[hidden] { display: none !important; }
+.data-page { display: flex; height: 100%; flex-direction: column; }
+.data-page-header { height: 45px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid var(--line); color: #727b85; }
+.data-page-header b { color: #b4bbc3; font-weight: 400; }
+.data-page-header h1 { margin: 0; color: var(--text); font-size: 15px; font-weight: 500; }
+.data-toolbar { flex: none; display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.data-toolbar label { display: flex; flex-direction: column; gap: 4px; color: #727b85; font-size: 12px; }
+.data-toolbar input, .data-toolbar select { width: 142px; height: 30px; padding: 0 7px; border: 1px solid #bdc3ca; border-radius: 3px; color: #525a64; background: #fff; outline-color: #82b6ff; }
+.data-toolbar .holdings-search { height: 30px; min-width: 58px; padding: 0 15px; border: 0; border-radius: 3px; color: #fff; background: #377ff0; cursor: pointer; }
+.data-table-scroll { min-height: 0; flex: 1; overflow: auto; padding: 0 8px 8px; }
+.holdings-table { min-width: 1500px; }
+.holdings-table th { position: sticky; top: 0; z-index: 1; }
+[data-trade-workspace][hidden], .data-page[hidden], .holdings-table tr[hidden] { display: none !important; }
 
 @media (max-width: 1150px) {
   .workspace { grid-template-rows: 452px minmax(170px, 1fr); }
