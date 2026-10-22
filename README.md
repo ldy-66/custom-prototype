@@ -17,3 +17,5 @@ python -m http.server 4174
 访问 `http://127.0.0.1:4174`。
 
 页面数据均为演示数据，不连接真实交易系统，也不会实际报单。
+
+持仓信息字段以 [字段标准](docs/holdings-field-standard.md) 为基准。
