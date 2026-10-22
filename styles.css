@@ -148,6 +148,39 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .holdings-table { min-width: 1500px; }
 .holdings-table th { position: sticky; top: 0; z-index: 1; }
 [data-trade-workspace][hidden], .data-page[hidden], .holdings-table tr[hidden] { display: none !important; }
+.holdings-content { min-height: 0; flex: 1; display: flex; flex-direction: column; }
+.holdings-subtabs { flex: none; min-height: 38px; display: flex; align-items: end; gap: 3px; padding: 0 12px; border-bottom: 1px solid var(--line); }
+.holdings-subtabs button { min-width: 92px; height: 34px; border: 0; border-bottom: 2px solid transparent; color: #727b85; background: transparent; cursor: pointer; }
+.holdings-subtabs button.active { color: #347eef; border-bottom-color: #347eef; font-weight: 600; }
+.holdings-subtabs span { margin: 0 0 8px auto; color: #9299a1; font-size: 11px; }
+.holdings-toolbar { flex: none; display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.holdings-toolbar label { display: flex; flex-direction: column; gap: 4px; color: #727b85; font-size: 12px; }
+.holdings-toolbar input, .holdings-toolbar select { width: 142px; height: 30px; padding: 0 7px; border: 1px solid #bdc3ca; border-radius: 3px; color: #525a64; background: #fff; outline-color: #82b6ff; }
+.holdings-toolbar .holdings-search, .holdings-toolbar .holdings-export { height: 30px; min-width: 58px; padding: 0 15px; border: 0; border-radius: 3px; color: #fff; background: #377ff0; cursor: pointer; }
+.holdings-toolbar .holdings-export { color: #56616b; border: 1px solid #cbd1d7; background: #fff; }
+.holdings-range { padding-bottom: 7px; color: #727b85; }
+.holdings-result { min-height: 0; flex: 1; }
+.holdings-result .holdings-table { min-width: 1120px; }
+.holdings-summary-line { flex: none; height: 38px; padding: 10px 15px; text-align: right; color: #525a64; border-top: 1px solid var(--line); background: #fbfcfd; font-weight: 600; }
+.holdings-link { border: 0; padding: 0; color: #327be7; background: transparent; cursor: pointer; text-decoration: underline; }
+.holdings-empty { padding: 26px; text-align: center; color: #8a929b; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.holdings-modal-mask { position: fixed; z-index: 150; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(21, 30, 40, .34); }
+.holdings-dialog { width: min(1050px, calc(100vw - 60px)); max-height: calc(100vh - 60px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #cfd6dd; border-radius: 6px; background: #fff; box-shadow: 0 18px 50px rgba(0,0,0,.25); }
+.holdings-dialog > header { flex: none; height: 48px; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--line); }
+.holdings-dialog h2 { margin: 0; color: #303943; font-size: 16px; font-weight: 600; }
+.holdings-dialog > header button { margin-left: auto; border: 0; color: #727b85; background: transparent; font-size: 24px; cursor: pointer; }
+.holdings-dialog-body { min-height: 0; overflow: auto; padding: 16px; }
+.holdings-facts { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); border: 1px solid #e0e4e8; border-bottom: 0; }
+.holdings-facts > div { min-height: 39px; display: flex; align-items: center; gap: 8px; padding: 5px 9px; border-bottom: 1px solid #e0e4e8; }
+.holdings-facts span { color: #7b858e; white-space: nowrap; }
+.holdings-facts b { color: #3f4850; font-weight: 500; }
+.holdings-dialog h3 { margin: 16px 0 7px; color: #303943; font-size: 14px; }
+.holdings-modal-table { max-height: 200px; overflow: auto; border: 1px solid #e3e6e9; }
+.holdings-modal-table table { min-width: 700px; }
+.holdings-demo-footnote { margin: 12px 0 0; color: #808992; font-size: 12px; }
+.holdings-dialog > footer { flex: none; display: flex; justify-content: flex-end; padding: 10px 16px; border-top: 1px solid var(--line); }
+.holdings-dialog > footer button { height: 30px; padding: 0 18px; border: 0; border-radius: 3px; color: #fff; background: #377ff0; cursor: pointer; }
 
 @media (max-width: 1150px) {
   .workspace { grid-template-rows: 452px minmax(170px, 1fr); }

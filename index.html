@@ -143,30 +143,11 @@
       </section>
       <section class="panel data-page" id="holdingsPage" aria-labelledby="holdingsTitle" hidden>
         <header class="data-page-header"><span>数据</span><b>/</b><h1 id="holdingsTitle">持仓信息</h1></header>
-        <div class="data-toolbar">
-          <label>客户名称<input type="text" placeholder="客户名称"></label>
-          <label>资金账户<input type="text" placeholder="资金账户"></label>
-          <label>交易账户<input type="text" placeholder="交易账户"></label>
-          <label>标的代码<input type="text" placeholder="标的代码"></label>
-          <label>交易市场<input type="text" placeholder="交易市场"></label>
-          <label>板块<select id="holdingsSectorFilter" aria-label="按板块筛选持仓"><option>全部</option><option>主板</option><option>科创板</option><option>创业板</option><option>港股</option><option>美股</option></select></label>
-          <button class="holdings-search" id="holdingsSearch" type="button">查询</button>
-        </div>
-        <div class="data-table-scroll">
-          <table class="data-table holdings-table">
-            <thead><tr><th>客户名称</th><th>资金账户号</th><th>交易账户</th><th>标的代码</th><th>标的名称</th><th>交易市场</th><th>账户币种</th><th>股票币种</th><th>持仓数量</th><th>可用数量</th><th>最新价</th><th>成本价</th><th>持仓均价</th><th>市值</th><th>持仓盈亏</th><th>持仓盈亏率</th><th>持仓类型</th></tr></thead>
-            <tbody id="holdingsRows">
-              <tr data-board="主板"><td>演示客户01</td><td>DEMO-1001</td><td>DEMO-TR01</td><td>000001.SZ</td><td>平安银行</td><td>深交所</td><td>CNY</td><td>CNY</td><td>120,000</td><td>117,000</td><td>10.80</td><td>10.41</td><td>10.62</td><td>1,296,000.00</td><td>46,800.00</td><td>3.75%</td><td>多头</td></tr>
-              <tr data-board="科创板"><td>演示客户02</td><td>DEMO-1002</td><td>DEMO-TR02</td><td>688001.SH</td><td>华兴源创</td><td>上交所</td><td>CNY</td><td>CNY</td><td>12,000</td><td>12,000</td><td>32.80</td><td>31.40</td><td>31.80</td><td>393,600.00</td><td>16,800.00</td><td>4.46%</td><td>多头</td></tr>
-              <tr data-board="创业板"><td>演示客户03</td><td>DEMO-1003</td><td>DEMO-TR03</td><td>300750.SZ</td><td>宁德时代</td><td>深交所</td><td>CNY</td><td>CNY</td><td>2,000</td><td>1,800</td><td>205.00</td><td>198.50</td><td>201.20</td><td>410,000.00</td><td>13,000.00</td><td>3.27%</td><td>多头</td></tr>
-              <tr data-board="港股"><td>演示客户04</td><td>DEMO-1004</td><td>DEMO-TR04</td><td>00700.HK</td><td>腾讯控股</td><td>港交所</td><td>HKD</td><td>HKD</td><td>1,000</td><td>1,000</td><td>520.00</td><td>500.00</td><td>510.00</td><td>520,000.00</td><td>20,000.00</td><td>4.00%</td><td>多头</td></tr>
-              <tr data-board="美股"><td>演示客户05</td><td>DEMO-1005</td><td>DEMO-TR05</td><td>AAPL.US</td><td>Apple</td><td>NASDAQ</td><td>USD</td><td>USD</td><td>500</td><td>500</td><td>230.00</td><td>220.00</td><td>225.00</td><td>115,000.00</td><td>5,000.00</td><td>4.55%</td><td>多头</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <div id="holdingsContent" class="holdings-content"></div>
       </section>
     </main>
     <div id="toast" class="toast" role="status"></div>
+    <div id="holdingsModalRoot"></div>
   </div>
   <script src="app.js"></script>
 </body>
