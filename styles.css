@@ -51,8 +51,8 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .data-page-heading span, .data-page-heading small { color: var(--muted); }
 .data-page-heading strong { font-size: 15px; font-weight: 600; }
 .holdings-filters { flex: none; padding: 4px 8px; border-bottom: 1px solid #e9edf1; }
-.holdings-filter-row { display: grid; grid-template-columns: repeat(5, minmax(125px, 1fr)); gap: 7px; margin: 3px 0; }
-.holdings-filter-row input { width: 100%; min-width: 0; height: 28px; padding: 0 8px; border: 1px solid #c7cdd4; border-radius: 4px; color: #3f464d; }
+.holdings-filter-row { display: grid; grid-template-columns: repeat(6, minmax(115px, 1fr)); gap: 7px; margin: 3px 0; }
+.holdings-filter-row input, .holdings-filter-row select { width: 100%; min-width: 0; height: 28px; padding: 0 8px; border: 1px solid #c7cdd4; border-radius: 4px; color: #3f464d; background: #fff; }
 .holdings-filter-row button { height: 28px; border: 0; border-radius: 3px; color: #fff; background: #3e83ed; }
 .holdings-filter-row .custom-export-button { border: 1px solid var(--blue); color: var(--blue); background: #fff; }
 .holdings-controls { height: 38px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; border-bottom: 1px solid var(--line); }
