@@ -20,6 +20,8 @@
     <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></symbol>
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="m15 4 5 5-3 1-4 4 1 4-1 1-8-8 1-1 4 1 4-4Z"/><path d="m9 15-5 5"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 8A7 7 0 0 1 18 6l2 6M18 16a7 7 0 0 1-12 2l-2-6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
   </svg>
 
   <div class="desktop-shell">
@@ -27,6 +29,23 @@
       <div class="brand-logo">m</div>
       <div class="product-name">对冲台客户端 · Custom原型</div>
       <div class="user-label"><svg><use href="#i-user"></use></svg><span>Custom Demo</span></div>
+      <div class="notification-center">
+        <button id="notificationBell" class="notification-bell" type="button" aria-label="消息通知" aria-expanded="false">
+          <svg><use href="#i-bell"></use></svg><span id="notificationBadge" class="notification-badge">3</span>
+        </button>
+        <section id="notificationPopover" class="notification-popover" hidden aria-label="消息中心">
+          <header class="notification-head">
+            <div><strong>消息通知</strong><span id="notificationUnreadText">3 条未读</span></div>
+            <button id="markAllNotificationsRead" type="button">全部已读</button>
+          </header>
+          <nav id="notificationTabs" class="notification-tabs" aria-label="消息分类"></nav>
+          <nav id="notificationSubFilters" class="notification-subfilters" aria-label="消息二级筛选"></nav>
+          <div class="notification-body">
+            <div id="notificationList" class="notification-list"></div>
+            <article id="notificationDetail" class="notification-detail"></article>
+          </div>
+        </section>
+      </div>
       <div class="titlebar-tools" aria-label="系统状态">
         <span class="shirt">●</span>
         <svg><use href="#i-wifi"></use></svg>
@@ -100,17 +119,17 @@
             <label>订单类型</label><select><option>限价单</option><option>市价单</option></select>
             <label>标的代码</label><select><option>000001.SZ 平安银行</option><option>000002.SZ 万科A</option></select>
             <label>订单方向</label><div class="direction-switch"><button class="active" data-direction="buy" type="button">买入</button><button data-direction="sell" type="button">卖出</button></div>
-            <label>订单价格 <svg><use href="#i-pin"></use></svg></label><div class="stepper"><button data-step="price" data-delta="-0.01" type="button">−</button><input id="priceInput" value="10.80"><button data-step="price" data-delta="0.01" type="button">＋</button></div>
+            <label>订单价格 <svg><use href="#i-pin"></use></svg></label><div class="stepper"><button data-step="price" data-delta="-0.01" type="button">−</button><input id="priceInput" value="10.80"><button data-step="price" data-delta="0.01" type="button">＋</button><button class="field-settings" type="button" aria-label="价格设置"><svg><use href="#i-settings"></use></svg></button></div>
             <div></div><div class="limit-hint">等于当前价 0.00%</div>
-            <label>委托数量</label><div class="stepper"><button data-step="quantity" data-delta="-100" type="button">−</button><input id="quantityInput" value="100"><button data-step="quantity" data-delta="100" type="button">＋</button><button class="gear-mini" type="button">⚙</button></div>
+            <label>委托数量</label><div class="stepper"><button data-step="quantity" data-delta="-100" type="button">−</button><input id="quantityInput" value="100"><button data-step="quantity" data-delta="100" type="button">＋</button><button id="quantitySettingsButton" class="field-settings" type="button" aria-label="快捷委托数量" aria-expanded="false"><svg><use href="#i-settings"></use></svg></button><section id="quantityModeMenu" class="quick-order-menu" aria-label="快捷委托数量" hidden><header>快捷委托数量</header><div class="quick-order-group"><span>预设比例</span><div class="quick-order-values ratio-values"><button data-ratio=".25" type="button">1/4</button><button data-ratio=".3333" type="button">1/3</button><button data-ratio=".5" type="button">1/2</button><button data-ratio="1" type="button">全仓</button></div></div><div class="quick-order-group"><span>常用数量</span><div id="commonQuantityMenuValues" class="quick-order-values"></div></div><div class="quick-order-group"><span>常用金额</span><div id="commonAmountMenuValues" class="quick-order-values"></div></div></section></div>
             <div></div><div class="available-hint">可买数量 <b>25,000</b></div>
-            <div></div><div class="ratio-buttons"><button data-ratio=".25" type="button">1/4</button><button data-ratio=".3333" type="button">1/3</button><button data-ratio=".5" type="button">1/2</button><button data-ratio="1" type="button">全仓</button></div>
+            <label>下单金额</label><div class="amount-field"><output id="amountValue">1,080.00</output><span>CNY</span></div>
             <label>订单模式</label><select><option>LowTouch</option><option>HighTouch</option></select>
           </div>
           <button id="expandOrder" class="expand-button" type="button">展开 <svg><use href="#i-chevron"></use></svg></button>
           <div id="orderExtra" class="order-extra" hidden><span>订单备注</span><input placeholder="选填"></div>
-          <div class="estimate"><span>预计下单金额 <i>CNY</i> <b id="estimateValue">1,080.00</b></span><span>可用资金 <i>CNY</i> 999,950,917,094.83</span></div>
-          <div class="order-actions"><button class="icon-action" type="button"><svg><use href="#i-settings"></use></svg></button><button class="icon-action" type="button"><svg><use href="#i-refresh"></use></svg></button><button id="submitOrder" class="submit-order" type="button">买入</button></div>
+          <div class="estimate"><span>可用资金 <i>CNY</i> 999,950,917,094.83</span></div>
+          <div class="order-actions"><button id="customSettingsButton" class="icon-action" type="button" aria-label="自定义设置" aria-expanded="false"><svg><use href="#i-settings"></use></svg></button><button class="icon-action" type="button"><svg><use href="#i-refresh"></use></svg></button><button id="submitOrder" class="submit-order" type="button">买入</button></div>
         </article>
       </section>
 
@@ -129,8 +148,38 @@
       </section>
       <section id="dataWorkspace" class="data-workspace" hidden aria-label="数据持仓信息"></section>
     </main>
+    <section id="customSettingsDialog" class="custom-settings-dialog" role="dialog" aria-labelledby="customSettingsTitle" hidden>
+      <header><strong id="customSettingsTitle">自定义设置</strong><button id="closeCustomSettings" type="button" aria-label="关闭">×</button></header>
+      <nav id="customSettingsTabs" class="custom-settings-tabs" aria-label="自定义设置分类"><button class="active" data-settings-tab="retained" type="button">保留字段</button><button data-settings-tab="common" type="button">常用数字</button><button data-settings-tab="protection" type="button">操作保护</button></nav>
+      <div class="custom-settings-body">
+        <fieldset class="retained-settings" data-settings-panel="retained">
+          <legend>订单下达后下单面板保留的要素</legend>
+          <div>
+            <label><input type="checkbox" checked>对冲渠道</label>
+            <label><input type="checkbox" checked>订单类型</label>
+            <label><input type="checkbox" checked>标的代码</label>
+            <label><input type="checkbox" checked>委托价格</label>
+            <label><input type="checkbox" checked>委托数量</label>
+            <label><input type="checkbox" checked>订单模式</label>
+            <label><input type="checkbox" checked>订单方向</label>
+            <label><input type="checkbox" checked>备注</label>
+          </div>
+        </fieldset>
+        <section class="common-number-settings" data-settings-panel="common" hidden>
+          <div><header>常用数量</header><div id="quickQuantityInputs" class="quick-number-inputs"></div></div>
+          <div><header>常用金额</header><div id="quickAmountInputs" class="quick-number-inputs amount-inputs"></div></div>
+        </section>
+        <fieldset class="wheel-settings" data-settings-panel="protection" hidden>
+          <legend>允许鼠标滚轮调整</legend>
+          <label><span>委托价格</span><input id="allowPriceWheel" type="checkbox"></label>
+          <label><span>委托数量</span><input id="allowQuantityWheel" type="checkbox"></label>
+        </fieldset>
+      </div>
+      <footer><button id="cancelCustomSettings" type="button">取消</button><button id="saveCustomSettings" class="primary" type="button">保存</button></footer>
+    </section>
     <div id="toast" class="toast" role="status"></div>
   </div>
   <script src="app.js"></script>
 </body>
 </html>
+
