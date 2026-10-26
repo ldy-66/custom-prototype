@@ -2,6 +2,7 @@ const state = {
   view: "trade",
   positionMode: "明细",
   positionMarket: "证券",
+  positionBoard: "全部",
   direction: "buy",
   price: 10.8,
   quantity: 100,
@@ -24,7 +25,7 @@ const holdingColumns = {
   "明细": ["客户名称", "客户名", "交易账户", "交易对手号", "交易对手名称", "交易对手简称", "资金账户号", "资金账号", "资金账号名称", "框架名称", "证券代码", "证券名称", "合约代码", "合约名称", "上市状态", "开仓日期", "开仓均价", "期初数量", "持仓数量", "初保比例", "期初汇率", "平仓盈亏", "开仓费率", "平仓费率", "单位待实现利率收益", "持仓类型", "业务类型"],
 };
 
-function makePositionRecord(marketType, symbol, name, contractCode, contractName, quantity, available, freeze, value, pnl) {
+function makePositionRecord(marketType, symbol, name, contractCode, contractName, quantity, available, freeze, value, pnl, board = null) {
   const common = {
     "客户名称": "演示客户01", "客户名": "演示客户01", "交易账户": "DEMO-TR01", "交易对手号": "DEMO-PTY01",
     "交易对手名称": "演示交易对手", "交易对手简称": "演示对手", "资金账户号": "DEMO-PA01", "资金账号": "DEMO-1001",
@@ -35,6 +36,7 @@ function makePositionRecord(marketType, symbol, name, contractCode, contractName
   };
   return {
     marketType,
+    board,
     client: { ...common, "成本价": "10.10", "持仓盈亏": pnl, "持仓盈亏率": "5.94%", "日内开仓成交数量": "20,000", "日内平仓成交数量": "0" },
     hedge: { ...common, "对冲渠道": "DEMO-CHANNEL", "对冲方资金账号": "DEMO-HEDGE-01", "日间开仓数量": "20,000", "日间平仓数量": "0" },
     detail: { ...common, "开仓日期": "2026-10-22", "开仓均价": "10.20", "初保比例": "25.00%", "期初汇率": "1.000000", "平仓盈亏": "0.00", "开仓费率": "0.03%", "平仓费率": "0.03%", "单位待实现利率收益": "0.00" },
@@ -42,7 +44,12 @@ function makePositionRecord(marketType, symbol, name, contractCode, contractName
 }
 
 const positionRecords = [
-  makePositionRecord("证券", "000001.SZ", "演示证券A", "—", "—", "120,000", "110,000", "2,000", "1,296,000.00", "72,000.00"),
+  // Prototype-only explicit category fixtures; categories are not derived from symbol formatting.
+  makePositionRecord("证券", "000001.SZ", "演示证券A", "—", "—", "120,000", "110,000", "2,000", "1,296,000.00", "72,000.00", "主板"),
+  makePositionRecord("证券", "DEMO-STAR", "演示科创板证券", "—", "—", "8,000", "7,000", "0", "86,400.00", "6,400.00", "科创板"),
+  makePositionRecord("证券", "DEMO-GEM", "演示创业板证券", "—", "—", "8,000", "7,000", "0", "86,400.00", "6,400.00", "创业板"),
+  makePositionRecord("证券", "DEMO-HK", "演示港股证券", "—", "—", "8,000", "7,000", "0", "86,400.00", "6,400.00", "港股"),
+  makePositionRecord("证券", "DEMO-US", "演示美股证券", "—", "—", "8,000", "7,000", "0", "86,400.00", "6,400.00", "美股"),
   makePositionRecord("期货", "—", "—", "IF2612.CFE", "演示期货合约", "12", "10", "1", "1,296,000.00", "72,000.00"),
   makePositionRecord("债券", "110001.SH", "演示债券A", "—", "—", "6,000", "5,500", "100", "1,296,000.00", "72,000.00"),
 ];
@@ -138,16 +145,24 @@ document.querySelector("#batchOrder").addEventListener("click", () => notify("�
 
 function renderHoldingsPage() {
   const columns = holdingColumns[state.positionMode];
-  const rows = positionRecords.filter(row => row.marketType === state.positionMarket).map(row => columns.map(column => row[state.positionMode === "对客" ? "client" : state.positionMode === "对冲" ? "hedge" : "detail"][column] ?? "—"));
+  const boardOptions = ["全部", "主板", "科创板", "创业板", "港股", "美股"].map(board => "<option value=\"" + board + "\"" + (state.positionBoard === board ? " selected" : "") + ">" + board + "</option>").join("");
+  const boardFilter = state.positionMarket === "证券" ? "<select aria-label=\"板块\" data-position-board>" + boardOptions + "</select>" : "";
+  const rows = positionRecords.filter(row => row.marketType === state.positionMarket && (state.positionMarket !== "证券" || state.positionBoard === "全部" || row.board === state.positionBoard)).map(row => columns.map(column => row[state.positionMode === "对客" ? "client" : state.positionMode === "对冲" ? "hedge" : "detail"][column] ?? "—"));
   dataWorkspace.innerHTML = `<header class="data-page-heading"><div><span>数据查询</span><strong>持仓信息</strong></div><small>当前视图：${state.positionMode}</small></header>
     <div class="holdings-filters">
       <div class="holdings-filter-row"><input aria-label="客户名称" placeholder="客户名称"><input aria-label="客户名" placeholder="客户名"><input aria-label="交易账户" placeholder="交易账户"><input aria-label="交易对手名称" placeholder="交易对手名称"><input aria-label="交易对手简称" placeholder="交易对手简称"></div>
-      <div class="holdings-filter-row"><input aria-label="资金账号" placeholder="资金账号"><input aria-label="资金账号名称" placeholder="资金账号名称"><input aria-label="证券代码 / 合约代码" placeholder="证券代码 / 合约代码"><button class="custom-query-button" type="button" data-query-holdings>查询</button><button class="custom-export-button" type="button" data-export-holdings>导出</button></div>
+      <div class="holdings-filter-row"><input aria-label="资金账号" placeholder="资金账号"><input aria-label="资金账号名称" placeholder="资金账号名称"><input aria-label="证券代码 / 合约代码" placeholder="证券代码 / 合约代码">${boardFilter}<button class="custom-query-button" type="button" data-query-holdings>查询</button><button class="custom-export-button" type="button" data-export-holdings>导出</button></div>
     </div>
     <div class="holdings-controls"><div class="holdings-market-tabs" role="group" aria-label="市场类别">${["证券", "期货", "债券"].map(x=>`<button type="button" data-position-market="${x}" class="${state.positionMarket===x?"active":""}" aria-pressed="${state.positionMarket===x}">${x}</button>`).join("")}</div><div class="holdings-mode-switch" role="radiogroup" aria-label="持仓类型">${["对客", "对冲", "明细"].map(x=>`<button type="button" role="radio" aria-checked="${state.positionMode===x}" data-position-mode="${x}" class="${state.positionMode===x?"active":""}"><span class="radio-dot"></span>${x}</button>`).join("")}</div></div>
     <div class="holdings-grid-wrap"><table class="data-table holdings-table"><thead><tr><th>序号</th>${columns.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows.map((row,i)=>`<tr class="${i===0?"selected":""}"><td>${i+1}</td>${row.map(v=>`<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   dataWorkspace.querySelectorAll("[data-position-mode]").forEach(button => button.addEventListener("click", () => { state.positionMode = button.dataset.positionMode; renderHoldingsPage(); }));
   dataWorkspace.querySelectorAll("[data-position-market]").forEach(button => button.addEventListener("click", () => { state.positionMarket = button.dataset.positionMarket; renderHoldingsPage(); }));
+  dataWorkspace.querySelector("[data-position-board]")?.addEventListener("change", event => {
+    const filterValues = [...dataWorkspace.querySelectorAll(".holdings-filter-row input")].map(input => input.value);
+    state.positionBoard = event.currentTarget.value;
+    renderHoldingsPage();
+    dataWorkspace.querySelectorAll(".holdings-filter-row input").forEach((input, index) => { input.value = filterValues[index] ?? ""; });
+  });
   dataWorkspace.querySelector("[data-query-holdings]").addEventListener("click", () => notify("持仓信息查询条件已应用（原型）"));
   dataWorkspace.querySelector("[data-export-holdings]").addEventListener("click", () => notify("当前持仓信息已生成演示导出"));
 }
