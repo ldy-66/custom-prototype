@@ -168,6 +168,9 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .custom-settings-body [hidden] { display: none; }
 .custom-settings-dialog fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .custom-settings-dialog legend { width: 100%; margin-bottom: 9px; color: #4f5862; }
+.wheel-settings { display: grid; gap: 8px; }
+.wheel-settings label { min-height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; border: 1px solid #e2e6ea; border-radius: 5px; color: #59636d; }
+.wheel-settings input { width: 16px; height: 16px; margin: 0; accent-color: var(--blue); }
 .retained-settings > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px 6px; }
 .retained-settings label { display: flex; align-items: center; gap: 4px; white-space: nowrap; color: #59636d; }
 .retained-settings input { width: 15px; height: 15px; margin: 0; accent-color: var(--blue); }
