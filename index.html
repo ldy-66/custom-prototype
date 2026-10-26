@@ -20,6 +20,8 @@
     <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></symbol>
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="m15 4 5 5-3 1-4 4 1 4-1 1-8-8 1-1 4 1 4-4Z"/><path d="m9 15-5 5"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 8A7 7 0 0 1 18 6l2 6M18 16a7 7 0 0 1-12 2l-2-6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
   </svg>
 
   <div class="desktop-shell">
@@ -27,6 +29,23 @@
       <div class="brand-logo">m</div>
       <div class="product-name">对冲台客户端 · Custom原型</div>
       <div class="user-label"><svg><use href="#i-user"></use></svg><span>Custom Demo</span></div>
+      <div class="notification-center">
+        <button id="notificationBell" class="notification-bell" type="button" aria-label="消息通知" aria-expanded="false">
+          <svg><use href="#i-bell"></use></svg><span id="notificationBadge" class="notification-badge">3</span>
+        </button>
+        <section id="notificationPopover" class="notification-popover" hidden aria-label="消息中心">
+          <header class="notification-head">
+            <div><strong>消息通知</strong><span id="notificationUnreadText">3 条未读</span></div>
+            <button id="markAllNotificationsRead" type="button">全部已读</button>
+          </header>
+          <nav id="notificationTabs" class="notification-tabs" aria-label="消息分类"></nav>
+          <nav id="notificationSubFilters" class="notification-subfilters" aria-label="消息二级筛选"></nav>
+          <div class="notification-body">
+            <div id="notificationList" class="notification-list"></div>
+            <article id="notificationDetail" class="notification-detail"></article>
+          </div>
+        </section>
+      </div>
       <div class="titlebar-tools" aria-label="系统状态">
         <span class="shirt">●</span>
         <svg><use href="#i-wifi"></use></svg>
