@@ -131,7 +131,7 @@
     </main>
     <section id="customSettingsDialog" class="custom-settings-dialog" role="dialog" aria-labelledby="customSettingsTitle" hidden>
       <header><strong id="customSettingsTitle">自定义设置</strong><button id="closeCustomSettings" type="button" aria-label="关闭">×</button></header>
-      <nav id="customSettingsTabs" class="custom-settings-tabs" aria-label="自定义设置分类"><button class="active" data-settings-tab="retained" type="button">保留字段</button><button data-settings-tab="common" type="button">常用数字</button></nav>
+      <nav id="customSettingsTabs" class="custom-settings-tabs" aria-label="自定义设置分类"><button class="active" data-settings-tab="retained" type="button">保留字段</button><button data-settings-tab="common" type="button">常用数字</button><button data-settings-tab="protection" type="button">操作保护</button></nav>
       <div class="custom-settings-body">
         <fieldset class="retained-settings" data-settings-panel="retained">
           <legend>订单下达后下单面板保留的要素</legend>
@@ -150,6 +150,11 @@
           <div><header>常用数量</header><div id="quickQuantityInputs" class="quick-number-inputs"></div></div>
           <div><header>常用金额</header><div id="quickAmountInputs" class="quick-number-inputs amount-inputs"></div></div>
         </section>
+        <fieldset class="wheel-settings" data-settings-panel="protection" hidden>
+          <legend>允许鼠标滚轮调整</legend>
+          <label><span>委托价格</span><input id="allowPriceWheel" type="checkbox"></label>
+          <label><span>委托数量</span><input id="allowQuantityWheel" type="checkbox"></label>
+        </fieldset>
       </div>
       <footer><button id="cancelCustomSettings" type="button">取消</button><button id="saveCustomSettings" class="primary" type="button">保存</button></footer>
     </section>
