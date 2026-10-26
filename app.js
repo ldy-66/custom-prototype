@@ -13,6 +13,8 @@ const state = {
   quantityMode: "specified",
   quickQuantities: loadPresetValues("customQuickQuantities", defaultQuickQuantities),
   quickAmounts: loadPresetValues("customQuickAmounts", defaultQuickAmounts),
+  allowPriceWheel: localStorage.getItem("customAllowPriceWheel") === "true",
+  allowQuantityWheel: localStorage.getItem("customAllowQuantityWheel") === "true",
   settingsTab: "retained",
   orders: [],
 };
@@ -29,6 +31,8 @@ const customSettingsDialog = document.querySelector("#customSettingsDialog");
 const customSettingsTabs = document.querySelector("#customSettingsTabs");
 const quickQuantityInputs = document.querySelector("#quickQuantityInputs");
 const quickAmountInputs = document.querySelector("#quickAmountInputs");
+const allowPriceWheelInput = document.querySelector("#allowPriceWheel");
+const allowQuantityWheelInput = document.querySelector("#allowQuantityWheel");
 const submitOrder = document.querySelector("#submitOrder");
 const orderRows = document.querySelector("#orderRows");
 const allCount = document.querySelector("#allCount");
@@ -112,11 +116,30 @@ priceInput.addEventListener("input", () => {
   updateEstimate();
 });
 
+priceInput.addEventListener("wheel", event => {
+  if (document.activeElement !== priceInput || event.ctrlKey || event.deltaY === 0) return;
+  event.preventDefault();
+  if (!state.allowPriceWheel) return;
+  state.price = Math.max(0, Number((state.price + (event.deltaY < 0 ? 0.01 : -0.01)).toFixed(2)));
+  priceInput.value = state.price.toFixed(2);
+  updateEstimate();
+}, { passive: false });
+
 quantityInput.addEventListener("input", () => {
   state.quantity = Math.max(0, Number.parseInt(quantityInput.value || "0", 10));
   setQuantityMode("specified");
   updateEstimate();
 });
+
+quantityInput.addEventListener("wheel", event => {
+  if (document.activeElement !== quantityInput || event.ctrlKey || event.deltaY === 0) return;
+  event.preventDefault();
+  if (!state.allowQuantityWheel) return;
+  state.quantity = Math.max(0, state.quantity + (event.deltaY < 0 ? state.tradeUnit : -state.tradeUnit));
+  quantityInput.value = state.quantity;
+  setQuantityMode("specified");
+  updateEstimate();
+}, { passive: false });
 
 quantitySettingsButton.addEventListener("click", event => {
   event.stopPropagation();
@@ -163,8 +186,12 @@ document.querySelector("#saveCustomSettings").addEventListener("click", () => {
   }
   state.quickQuantities = quantities;
   state.quickAmounts = amounts;
+  state.allowPriceWheel = allowPriceWheelInput.checked;
+  state.allowQuantityWheel = allowQuantityWheelInput.checked;
   localStorage.setItem("customQuickQuantities", JSON.stringify(quantities));
   localStorage.setItem("customQuickAmounts", JSON.stringify(amounts));
+  localStorage.setItem("customAllowPriceWheel", String(state.allowPriceWheel));
+  localStorage.setItem("customAllowQuantityWheel", String(state.allowQuantityWheel));
   renderShortcutValues();
   setCustomSettingsDialog(false);
   notify("设置已保存");
@@ -310,6 +337,8 @@ function setCustomSettingsDialog(open) {
   setSettingsTab("retained");
   quickQuantityInputs.innerHTML = renderPresetInputs(state.quickQuantities, "常用数量");
   quickAmountInputs.innerHTML = renderPresetInputs(state.quickAmounts, "常用金额", true);
+  allowPriceWheelInput.checked = state.allowPriceWheel;
+  allowQuantityWheelInput.checked = state.allowQuantityWheel;
 }
 
 function setSettingsTab(tab) {
