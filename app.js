@@ -1,3 +1,6 @@
+const defaultQuickQuantities = [100, 500, 1000, 5000];
+const defaultQuickAmounts = [100000, null, null, null];
+
 const state = {
   view: "trade",
   positionMode: "明细",
@@ -5,12 +8,27 @@ const state = {
   direction: "buy",
   price: 10.8,
   quantity: 100,
+  availableQuantity: 25000,
+  tradeUnit: 100,
+  quantityMode: "specified",
+  quickQuantities: loadPresetValues("customQuickQuantities", defaultQuickQuantities),
+  quickAmounts: loadPresetValues("customQuickAmounts", defaultQuickAmounts),
+  settingsTab: "retained",
   orders: [],
 };
 
 const priceInput = document.querySelector("#priceInput");
 const quantityInput = document.querySelector("#quantityInput");
-const estimateValue = document.querySelector("#estimateValue");
+const amountValue = document.querySelector("#amountValue");
+const quantitySettingsButton = document.querySelector("#quantitySettingsButton");
+const quantityModeMenu = document.querySelector("#quantityModeMenu");
+const commonQuantityMenuValues = document.querySelector("#commonQuantityMenuValues");
+const commonAmountMenuValues = document.querySelector("#commonAmountMenuValues");
+const customSettingsButton = document.querySelector("#customSettingsButton");
+const customSettingsDialog = document.querySelector("#customSettingsDialog");
+const customSettingsTabs = document.querySelector("#customSettingsTabs");
+const quickQuantityInputs = document.querySelector("#quickQuantityInputs");
+const quickAmountInputs = document.querySelector("#quickAmountInputs");
 const submitOrder = document.querySelector("#submitOrder");
 const orderRows = document.querySelector("#orderRows");
 const allCount = document.querySelector("#allCount");
@@ -83,6 +101,7 @@ document.querySelectorAll("[data-step]").forEach(button => {
     } else {
       state.quantity = Math.max(0, state.quantity + delta);
       quantityInput.value = state.quantity;
+      setQuantityMode("specified");
     }
     updateEstimate();
   });
@@ -95,15 +114,71 @@ priceInput.addEventListener("input", () => {
 
 quantityInput.addEventListener("input", () => {
   state.quantity = Math.max(0, Number.parseInt(quantityInput.value || "0", 10));
+  setQuantityMode("specified");
   updateEstimate();
 });
 
-document.querySelectorAll("[data-ratio]").forEach(button => {
-  button.addEventListener("click", () => {
-    state.quantity = Math.floor((25000 * Number(button.dataset.ratio)) / 100) * 100;
-    quantityInput.value = state.quantity;
-    updateEstimate();
-  });
+quantitySettingsButton.addEventListener("click", event => {
+  event.stopPropagation();
+  setCustomSettingsDialog(false);
+  setQuantityModeMenu(quantityModeMenu.hidden);
+});
+
+quantityModeMenu.addEventListener("click", event => {
+  event.stopPropagation();
+  const button = event.target.closest("button");
+  if (!button) return;
+  if (button.dataset.ratio) applyRatio(button.dataset.ratio);
+  if (button.dataset.commonQuantity) applyCommonQuantity(Number(button.dataset.commonQuantity));
+  if (button.dataset.commonAmount) applyCommonAmount(Number(button.dataset.commonAmount));
+  setQuantityModeMenu(false);
+});
+
+customSettingsButton.addEventListener("click", event => {
+  event.stopPropagation();
+  setQuantityModeMenu(false);
+  setCustomSettingsDialog(customSettingsDialog.hidden);
+});
+
+customSettingsDialog.addEventListener("click", event => event.stopPropagation());
+
+customSettingsTabs.addEventListener("click", event => {
+  const button = event.target.closest("[data-settings-tab]");
+  if (button) setSettingsTab(button.dataset.settingsTab);
+});
+
+document.querySelector("#closeCustomSettings").addEventListener("click", () => setCustomSettingsDialog(false));
+document.querySelector("#cancelCustomSettings").addEventListener("click", () => setCustomSettingsDialog(false));
+
+document.querySelector("#saveCustomSettings").addEventListener("click", () => {
+  const quantities = readPresetValues(quickQuantityInputs);
+  const amounts = readPresetValues(quickAmountInputs);
+  if (quantities.some(Number.isNaN)) {
+    notify("请输入有效的常用数量");
+    return;
+  }
+  if (amounts.some(Number.isNaN)) {
+    notify("请输入有效的常用金额");
+    return;
+  }
+  state.quickQuantities = quantities;
+  state.quickAmounts = amounts;
+  localStorage.setItem("customQuickQuantities", JSON.stringify(quantities));
+  localStorage.setItem("customQuickAmounts", JSON.stringify(amounts));
+  renderShortcutValues();
+  setCustomSettingsDialog(false);
+  notify("设置已保存");
+});
+
+document.addEventListener("click", () => {
+  setCustomSettingsDialog(false);
+  setQuantityModeMenu(false);
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key !== "Escape") return;
+  setCustomSettingsDialog(false);
+  setQuantityModeMenu(false);
 });
 
 document.querySelector("#expandOrder").addEventListener("click", event => {
@@ -162,7 +237,110 @@ function setDirection(direction) {
 }
 
 function updateEstimate() {
-  estimateValue.textContent = (state.price * state.quantity).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  amountValue.textContent = (state.price * state.quantity).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function applyRatio(ratio) {
+  setQuantityMode(`ratio:${ratio}`);
+  state.quantity = Math.floor((state.availableQuantity * Number(ratio)) / state.tradeUnit) * state.tradeUnit;
+  quantityInput.value = state.quantity;
+  updateEstimate();
+}
+
+function applyCommonQuantity(quantity) {
+  setQuantityMode(`quantity:${quantity}`);
+  state.quantity = quantity;
+  quantityInput.value = quantity;
+  updateEstimate();
+}
+
+function applyCommonAmount(amount) {
+  if (!state.price) {
+    notify("请输入有效的委托价格");
+    return;
+  }
+  const quantity = Math.floor(amount / state.price / state.tradeUnit) * state.tradeUnit;
+  if (!quantity) {
+    notify("当前金额不足一个交易单位");
+    return;
+  }
+  setQuantityMode(`amount:${amount}`);
+  state.quantity = quantity;
+  quantityInput.value = quantity;
+  updateEstimate();
+}
+
+function setQuantityMode(mode) {
+  state.quantityMode = mode;
+  quantityModeMenu.querySelectorAll("button").forEach(button => {
+    const buttonMode = button.dataset.ratio
+      ? `ratio:${button.dataset.ratio}`
+      : button.dataset.commonQuantity
+        ? `quantity:${button.dataset.commonQuantity}`
+        : button.dataset.commonAmount
+          ? `amount:${button.dataset.commonAmount}`
+          : "";
+    button.classList.toggle("active", buttonMode === mode);
+  });
+}
+
+function setQuantityModeMenu(open) {
+  if (open) renderShortcutValues();
+  quantityModeMenu.hidden = !open;
+  quantitySettingsButton.classList.toggle("active", open);
+  quantitySettingsButton.setAttribute("aria-expanded", String(open));
+}
+
+function loadPresetValues(key, defaults) {
+  try {
+    const values = JSON.parse(localStorage.getItem(key));
+    return Array.isArray(values) && values.length === 4 && values.every(value => value === null || Number.isSafeInteger(value) && value > 0)
+      ? values
+      : defaults;
+  } catch {
+    return defaults;
+  }
+}
+
+function setCustomSettingsDialog(open) {
+  customSettingsDialog.hidden = !open;
+  customSettingsButton.classList.toggle("active", open);
+  customSettingsButton.setAttribute("aria-expanded", String(open));
+  if (!open) return;
+  setSettingsTab("retained");
+  quickQuantityInputs.innerHTML = renderPresetInputs(state.quickQuantities, "常用数量");
+  quickAmountInputs.innerHTML = renderPresetInputs(state.quickAmounts, "常用金额", true);
+}
+
+function setSettingsTab(tab) {
+  state.settingsTab = tab;
+  customSettingsTabs.querySelectorAll("[data-settings-tab]").forEach(button => button.classList.toggle("active", button.dataset.settingsTab === tab));
+  customSettingsDialog.querySelectorAll("[data-settings-panel]").forEach(panel => { panel.hidden = panel.dataset.settingsPanel !== tab; });
+}
+
+function renderPresetInputs(values, ariaLabel, amount = false) {
+  return values.map((value, index) => `
+    <label><span>常用 ${index + 1}</span><span class="number-field"><input type="number" min="1" step="1" value="${value ?? ""}" aria-label="${ariaLabel} ${index + 1}">${amount ? "<i>CNY</i>" : ""}</span></label>`).join("");
+}
+
+function readPresetValues(container) {
+  return [...container.querySelectorAll("input")].map(input => {
+    if (!input.value.trim()) return null;
+    const value = Number(input.value);
+    return Number.isSafeInteger(value) && value > 0 ? value : Number.NaN;
+  });
+}
+
+function renderShortcutValues() {
+  commonQuantityMenuValues.innerHTML = renderShortcutButtons(state.quickQuantities, "commonQuantity");
+  commonAmountMenuValues.innerHTML = renderShortcutButtons(state.quickAmounts, "commonAmount");
+  setQuantityMode(state.quantityMode);
+}
+
+function renderShortcutButtons(values, type) {
+  const availableValues = values.filter(value => value !== null);
+  if (!availableValues.length) return '<span class="quick-order-empty">未设置</span>';
+  return availableValues.map(value => `<button data-${type === "commonQuantity" ? "common-quantity" : "common-amount"}="${value}" type="button">${value.toLocaleString("zh-CN")}</button>`).join("");
 }
 
 function renderOrders() {
@@ -188,4 +366,6 @@ function notify(message) {
 }
 
 updateEstimate();
+renderShortcutValues();
 renderOrders();
+
