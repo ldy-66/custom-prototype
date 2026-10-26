@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>自定义设置 - 操作保护</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      color: #313943;
+      background: #f4f6f8;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 760px; min-height: 100vh; display: grid; place-items: center; background: #f4f6f8; }
+    .dialog { width: 680px; overflow: hidden; border: 1px solid #4382eb; border-radius: 7px; background: #fff; box-shadow: 0 14px 32px rgba(29, 43, 61, .18); }
+    .dialog-head { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-bottom: 1px solid #dfe3e8; }
+    .dialog-head h1 { margin: 0; font-size: 16px; font-weight: 600; }
+    .close { border: 0; background: transparent; color: #68717b; font-size: 22px; line-height: 1; cursor: pointer; }
+    .tabs { height: 48px; display: flex; gap: 8px; padding: 0 20px; border-bottom: 1px solid #dfe3e8; }
+    .tabs button { position: relative; min-width: 90px; padding: 0 8px; border: 0; background: transparent; color: #69727c; font-size: 14px; cursor: pointer; }
+    .tabs button.active { color: #3478e5; font-weight: 600; }
+    .tabs button.active::after { position: absolute; right: 12px; bottom: -1px; left: 12px; height: 2px; background: #4382eb; content: ""; }
+    .content { min-height: 290px; padding: 22px 24px; }
+    .section-title { margin: 0 0 8px; color: #4a535e; font-size: 14px; font-weight: 600; }
+    .setting-row { min-height: 86px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid #e8ebef; }
+    .setting-row:last-of-type { border-bottom: 0; }
+    .setting-copy { display: grid; gap: 7px; }
+    .setting-copy strong { font-size: 14px; font-weight: 500; }
+    .setting-copy span { color: #7c858f; font-size: 12px; }
+    .switch { position: relative; width: 38px; height: 22px; flex: none; padding: 0; border: 0; border-radius: 12px; background: #c6ccd3; cursor: pointer; transition: background .16s ease; }
+    .switch::after { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.18); content: ""; transition: transform .16s ease; }
+    .switch[aria-checked="true"] { background: #4382eb; }
+    .switch[aria-checked="true"]::after { transform: translateX(16px); }
+    .switch:focus-visible, .tabs button:focus-visible, .close:focus-visible, .actions button:focus-visible { outline: 2px solid #4382eb; outline-offset: 2px; }
+    .actions { height: 58px; display: flex; align-items: center; justify-content: flex-end; gap: 9px; padding: 0 20px; border-top: 1px solid #eef0f3; }
+    .actions button { min-width: 68px; height: 30px; border: 1px solid #c7cdd4; border-radius: 4px; background: #fff; color: #4d5661; font: inherit; font-size: 13px; cursor: pointer; }
+    .actions .save { border-color: #4382eb; background: #4382eb; color: #fff; }
+    .toast { position: fixed; bottom: 28px; left: 50%; padding: 9px 16px; border-radius: 4px; background: #333b45; color: #fff; font-size: 13px; opacity: 0; transform: translate(-50%, 8px); transition: .18s ease; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  </style>
+</head>
+<body>
+  <section class="dialog" role="dialog" aria-labelledby="settingsTitle">
+    <header class="dialog-head">
+      <h1 id="settingsTitle">自定义设置</h1>
+      <button class="close" type="button" aria-label="关闭">×</button>
+    </header>
+    <nav class="tabs" aria-label="自定义设置分类">
+      <button type="button">保留字段</button>
+      <button type="button">常用数字</button>
+      <button class="active" type="button" aria-current="page">操作保护</button>
+    </nav>
+    <div class="content">
+      <h2 class="section-title">鼠标滚轮调整</h2>
+      <div class="setting-row">
+        <div class="setting-copy">
+          <strong>委托价格</strong>
+          <span>允许使用鼠标滚轮调整委托价格</span>
+        </div>
+        <button class="switch" type="button" role="switch" aria-label="允许鼠标滚轮调整委托价格" aria-checked="false"></button>
+      </div>
+      <div class="setting-row">
+        <div class="setting-copy">
+          <strong>委托数量</strong>
+          <span>允许使用鼠标滚轮调整委托数量</span>
+        </div>
+        <button class="switch" type="button" role="switch" aria-label="允许鼠标滚轮调整委托数量" aria-checked="false"></button>
+      </div>
+    </div>
+    <footer class="actions">
+      <button class="cancel" type="button">取消</button>
+      <button class="save" type="button">保存</button>
+    </footer>
+  </section>
+  <div class="toast" role="status" aria-live="polite">设置已保存</div>
+  <script>
+    document.querySelectorAll(".switch").forEach(control => {
+      control.addEventListener("click", () => {
+        control.setAttribute("aria-checked", String(control.getAttribute("aria-checked") !== "true"));
+      });
+    });
+    document.querySelector(".save").addEventListener("click", () => {
+      const toast = document.querySelector(".toast");
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1500);
+    });
+  </script>
+</body>
+</html>
+
