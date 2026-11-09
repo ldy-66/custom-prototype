@@ -21,7 +21,8 @@ const state = {
   notificationOpen: false,
   notificationFilter: "全部",
   notificationSubFilter: "全部",
-  selectedNotification: 1,
+  selectedNotification: null,
+  notificationPage: "list",
 };
 
 const notifications = [
@@ -56,6 +57,12 @@ const orderRows = document.querySelector("#orderRows");
 const allCount = document.querySelector("#allCount");
 const pendingCount = document.querySelector("#pendingCount");
 const toast = document.querySelector("#toast");
+const noticeChannels = NoticeChannels.connect("Custom", document.querySelector(".workspace"));
+const loginPreview = document.querySelector("#loginPreview");
+document.querySelector("#loginPreviewButton").addEventListener("click", () => {
+  if (!loginPreview.getAttribute("src")) loginPreview.src = "prototypes/customer-email-login.html";
+  document.querySelector('[data-view="login"]').click();
+});
 const notificationBell = document.querySelector("#notificationBell");
 const notificationBadge = document.querySelector("#notificationBadge");
 const notificationPopover = document.querySelector("#notificationPopover");
@@ -66,10 +73,15 @@ const notificationDetail = document.querySelector("#notificationDetail");
 notificationBell.addEventListener("click", event => {
   event.stopPropagation();
   state.notificationOpen = !state.notificationOpen;
+  if (state.notificationOpen) state.notificationPage = "list";
   renderNotifications();
 });
 
 notificationPopover.addEventListener("click", event => event.stopPropagation());
+document.querySelector("#backToNotificationList").addEventListener("click", () => {
+  state.notificationPage = "list";
+  renderNotifications();
+});
 document.addEventListener("click", () => {
   if (!state.notificationOpen) return;
   state.notificationOpen = false;
@@ -92,8 +104,8 @@ notificationTabs.addEventListener("click", event => {
   if (!button) return;
   state.notificationFilter = button.dataset.filter;
   state.notificationSubFilter = "全部";
-  const first = filteredNotifications()[0];
-  state.selectedNotification = first?.id ?? null;
+  state.selectedNotification = null;
+  state.notificationPage = "list";
   renderNotifications();
 });
 
@@ -101,8 +113,8 @@ notificationSubFilters.addEventListener("click", event => {
   const button = event.target.closest("[data-sub-filter]");
   if (!button) return;
   state.notificationSubFilter = button.dataset.subFilter;
-  const first = filteredNotifications()[0];
-  state.selectedNotification = first?.id ?? null;
+  state.selectedNotification = null;
+  state.notificationPage = "list";
   renderNotifications();
 });
 
@@ -113,15 +125,17 @@ notificationList.addEventListener("click", event => {
   if (!message) return;
   message.unread = false;
   state.selectedNotification = message.id;
+  state.notificationPage = "detail";
   renderNotifications();
 });
 
-notificationDetail.addEventListener("click", event => {
-  if (!event.target.closest("[data-order-link]")) return;
-  const current = notifications.find(row => row.id === state.selectedNotification);
+document.querySelector("#openFullNotifications").addEventListener("click", () => {
   state.notificationOpen = false;
   renderNotifications();
-  notify(current?.order === "--" ? "该消息暂无关联订单" : `已定位关联订单 ${current.order}`);
+  fullMessages.open();
+});
+notificationDetail.addEventListener("click", event => {
+  if (event.target.closest("[data-order-link]")) goToCustomOrder(notifications.find(row => row.id === state.selectedNotification));
 });
 
 const dataWorkspace = document.querySelector("#dataWorkspace");
@@ -163,13 +177,14 @@ const positionRecords = [
 
 document.querySelectorAll(".nav-item").forEach(button => {
   button.addEventListener("click", () => {
-    if (button.dataset.view === "system") {
-      notify("系统设置模块将在对应需求分支继续复刻");
-      return;
-    }
+
     state.view = button.dataset.view;
     document.querySelectorAll(".nav-item").forEach(item => item.classList.toggle("active", item === button));
     dataWorkspace.hidden = state.view !== "data";
+    cfRenderVisibility();
+    if (state.view === "system") noticeChannels.open();
+    else noticeChannels.close();
+    loginPreview.hidden = state.view !== "login";
     if (state.view === "data") renderHoldingsPage();
   });
 });
@@ -307,7 +322,7 @@ document.querySelector("#expandOrder").addEventListener("click", event => {
   event.currentTarget.childNodes[0].textContent = extra.hidden ? "展开 " : "收起 ";
 });
 
-submitOrder.addEventListener("click", () => {
+function submitCustomOrder() {
   if (!state.price || !state.quantity) {
     notify("请输入有效的委托价格和数量");
     return;
@@ -325,16 +340,52 @@ submitOrder.addEventListener("click", () => {
     status: "已提交",
   });
   renderOrders();
-  notify(`${state.direction === "buy" ? "买入" : "卖出"}委托已提交`);
+  const order = state.orders[0];
+  noticeChannels.dispatch({
+    message: "order.submit",
+    sound: "orderSuccess",
+    addMessage: () => {
+      const summary = `${order.symbol} ${order.direction}母单已提交。`;
+      notifications.unshift({id:Date.now(), category:"订单", orderLevel:"母单", event:"已提交",
+        level:"success", icon:"✓", title:"母单提交成功", summary, body:summary,
+        time:new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}),
+        unread:true, account:order.account, orderRef:order});
+      renderNotifications();
+    },
+  });
+}
+submitOrder.addEventListener("click", () => {
+  if (document.querySelector("#customAlgorithm").value !== "TWAP") return submitCustomOrder();
+  if (!(state.price > 0 && state.quantity > 0)) return notify("请输入有效的委托价格和数量");
+  AlgorithmOrder.open({
+    direction: state.direction === "buy" ? "买入" : "卖出",
+    price: state.price.toFixed(2), quantity: state.quantity,
+    onConfirm: submitCustomOrder,
+  });
 });
 
 document.querySelector("#batchOrder").addEventListener("click", () => notify("请选择待批量下单的委托"));
 
 function renderHoldingsPage() {
-  const columns = holdingColumns[state.positionMode];
+  const showBuckets = state.positionMode === "对客" && state.positionMarket === "期货";
+  const columns = showBuckets ? [...holdingColumns[state.positionMode], "今仓", "昨仓", "今仓冻结", "昨仓冻结"] : holdingColumns[state.positionMode];
   const boardOptions = ["全部", "主板", "科创板", "创业板", "港股", "美股"].map(board => "<option value=\"" + board + "\"" + (state.positionBoard === board ? " selected" : "") + ">" + board + "</option>").join("");
   const boardFilter = state.positionMarket === "证券" ? "<select aria-label=\"板块\" data-position-board>" + boardOptions + "</select>" : "";
-  const rows = positionRecords.filter(row => row.marketType === state.positionMarket && (state.positionMarket !== "证券" || state.positionBoard === "全部" || row.board === state.positionBoard)).map(row => columns.map(column => row[state.positionMode === "对客" ? "client" : state.positionMode === "对冲" ? "hedge" : "detail"][column] ?? "—"));
+  let rows = positionRecords.filter(row => row.marketType === state.positionMarket && (state.positionMarket !== "证券" || state.positionBoard === "全部" || row.board === state.positionBoard)).map(row => columns.map(column => row[state.positionMode === "对客" ? "client" : state.positionMode === "对冲" ? "hedge" : "detail"][column] ?? "—"));
+  if (showBuckets) rows = ["多头", "空头"].map(side => {
+    const position = cfPosition(side);
+    return {
+      ...Object.fromEntries(columns.map((column, i) => [column, rows[0]?.[i] ?? "—"])), "交易账户": cf.account,
+      "资金账号": cf.fund,
+      "交易对手名称": cf.customer,
+      "框架名称": cf.frame, "合约代码": cfContract().code, "合约名称": cfContract().name,
+      "持仓类型": side, "持仓数量": position.today + position.yesterday,
+      "可用数量": position.availableToday + position.availableYesterday,
+      "交易冻结数量": position.frozenToday + position.frozenYesterday,
+      "今仓": position.today, "昨仓": position.yesterday,
+      "今仓冻结": position.frozenToday, "昨仓冻结": position.frozenYesterday,
+    };
+  }).map(row => columns.map(column => row[column] ?? "—"));
   dataWorkspace.innerHTML = `<header class="data-page-heading"><div><span>数据查询</span><strong>持仓信息</strong></div><small>当前视图：${state.positionMode}</small></header>
     <div class="holdings-filters">
       <div class="holdings-filter-row"><input aria-label="客户名称" placeholder="客户名称"><input aria-label="客户名" placeholder="客户名"><input aria-label="交易账户" placeholder="交易账户"><input aria-label="交易对手名称" placeholder="交易对手名称"><input aria-label="交易对手简称" placeholder="交易对手简称"></div>
@@ -480,23 +531,31 @@ function renderOrders() {
     return;
   }
   orderRows.innerHTML = state.orders.map((order, index) => `
-    <tr>
+    <tr data-custom-order-id="${order.id}">
       <td>${index + 1}</td><td>□</td><td>${order.account}</td><td>${order.type}</td><td>${order.symbol}</td><td>${order.name}</td>
       <td class="${order.direction === "买入" ? "orange" : "green"}">${order.direction}</td><td>${order.price}</td><td>${order.quantity}</td><td>${order.mode}</td><td>${order.status}</td><td>--</td><td>0</td>
     </tr>`).join("");
 }
 
 function filteredNotifications() {
-  let rows = state.notificationFilter === "全部" ? notifications : notifications.filter(message => message.category === state.notificationFilter);
-  if (state.notificationFilter === "订单" && state.notificationSubFilter !== "全部") {
-    rows = state.notificationSubFilter === "拒单"
-      ? rows.filter(message => message.event === "拒单")
-      : rows.filter(message => message.orderLevel === state.notificationSubFilter);
-  }
-  if (state.notificationFilter === "市场" && state.notificationSubFilter !== "全部") {
-    rows = rows.filter(message => message.market === state.notificationSubFilter);
-  }
-  return rows;
+  return MessageCenter.list(notifications,state.notificationFilter,state.notificationSubFilter);
+}
+
+function customOrderAction(item) {
+  return state.orders.includes(item?.orderRef) ? "查看相关订单" : "";
+}
+
+function goToCustomOrder(item) {
+  if (!customOrderAction(item)) { notify("找不到关联订单"); return false; }
+  state.notificationOpen = false;
+  renderNotifications();
+  document.querySelector('[data-view="trade"]').click();
+  orderRows.querySelectorAll("[data-custom-order-id]").forEach(row => {
+    const selected = Number(row.dataset.customOrderId) === item.orderRef.id;
+    row.classList.toggle("notice-related-order",selected);
+    if (selected) row.scrollIntoView({block:"nearest"});
+  });
+  return true;
 }
 
 function notificationMeta(message) {
@@ -511,11 +570,26 @@ function notificationMeta(message) {
 
 function renderNotifications() {
   const unread = notifications.filter(message => message.unread).length;
+  const detail = state.notificationPage === "detail"
+    ? notifications.find(message => message.id === state.selectedNotification) || null
+    : null;
+  const detailView = Boolean(detail);
   notificationBadge.textContent = unread ? String(unread) : "";
   document.querySelector("#notificationUnreadText").textContent = `${unread} 条未读`;
   notificationBell.classList.toggle("open", state.notificationOpen);
   notificationBell.setAttribute("aria-expanded", String(state.notificationOpen));
   notificationPopover.hidden = !state.notificationOpen;
+  notificationPopover.classList.toggle("detail-view", detailView);
+  document.querySelector("#notificationListHeader").hidden = detailView;
+  document.querySelector("#notificationDetailHeader").hidden = !detailView;
+  document.querySelector("#notificationDetailDate").textContent = detail ? `今天 ${detail.time}` : "";
+  document.querySelector("#markAllNotificationsRead").hidden = detailView;
+  notificationTabs.hidden = detailView;
+  notificationSubFilters.hidden = detailView;
+  notificationList.hidden = detailView;
+  notificationDetail.hidden = !detailView;
+  document.querySelector("#notificationFooter").hidden = detailView;
+  if (!detailView) state.notificationPage = "list";
 
   const categories = ["全部", "订单", "市场", "风控", "系统"];
   notificationTabs.innerHTML = categories.map(category => {
@@ -523,37 +597,34 @@ function renderNotifications() {
     return `<button class="${state.notificationFilter === category ? "active" : ""}" data-filter="${category}" type="button">${category} ${count}</button>`;
   }).join("");
 
-  const subFilters = state.notificationFilter === "订单"
-    ? [["全部", "全部订单"], ["母单", "母单"], ["子单", "子单"], ["拒单", "全部拒单"]]
-    : state.notificationFilter === "市场"
-      ? [["全部", "全部市场"], ["沪深", "沪深"], ["港股", "港股"], ["美股", "美股"]]
-      : [];
-  notificationSubFilters.innerHTML = subFilters.map(([value, label]) => `<button class="${state.notificationSubFilter === value ? "active" : ""}" data-sub-filter="${value}" type="button">${label}</button>`).join("");
+  const subFilters = MessageCenter.filters(state.notificationFilter,false);
+  const currentSubfilterLabel = subFilters.find(([value]) => value === state.notificationSubFilter)?.[1] || subFilters[0]?.[1] || "";
+  notificationSubFilters.innerHTML = `${subFilters.map(([value, label]) => `<button class="${state.notificationSubFilter === value ? "active" : ""}" data-sub-filter="${value}" aria-pressed="${value === state.notificationSubFilter}" type="button">${label}</button>`).join("")}${subFilters.length ? `<span class="notification-filter-current">当前筛选：${currentSubfilterLabel}</span>` : ""}`;
   notificationPopover.classList.toggle("has-subfilters", subFilters.length > 0);
 
   const rows = filteredNotifications();
-  if (!rows.some(message => message.id === state.selectedNotification)) state.selectedNotification = rows[0]?.id ?? null;
-  notificationList.innerHTML = rows.length ? rows.map(message => `
-    <button class="notification-item ${message.unread ? "unread" : ""} ${state.selectedNotification === message.id ? "selected" : ""}" data-message-id="${message.id}" type="button">
-      <span class="message-icon ${message.level}">${message.icon}</span>
-      <span class="message-copy"><span class="message-title">${message.title}<i class="message-status">${message.category === "订单" ? `${message.orderLevel} · ${message.event}` : message.category === "市场" ? `${message.market} · ${message.event}` : message.event}</i></span><span class="message-summary">${message.summary}</span></span>
-      <span class="message-time">${message.time}</span>
-    </button>`).join("") : '<div class="notification-empty">暂无消息</div>';
-
-  const current = notifications.find(message => message.id === state.selectedNotification);
-  const meta = current ? notificationMeta(current) : [];
-  notificationDetail.innerHTML = current ? `
-    <header><strong>${current.title}</strong><span>今天 ${current.time}</span></header>
-    <p>${current.body}</p>
-    <div class="message-meta">${meta.map(value => `<span>${value ?? "--"}</span>`).join("")}</div>
-    <div class="message-actions"><button type="button" data-collapse>收起</button>${current.category === "订单" ? '<button class="primary" type="button" data-order-link>查看相关订单</button>' : ""}</div>` : "";
-  const collapse = notificationDetail.querySelector("[data-collapse]");
-  if (collapse) collapse.addEventListener("click", () => {
-    state.notificationOpen = false;
-    renderNotifications();
-  });
+  if (detailView) {
+    const typeLabel = detail.category === "订单"
+      ? `${detail.orderLevel} · ${detail.event}`
+      : detail.category === "市场" ? `${detail.market} · ${detail.event}` : detail.event;
+    const meta = notificationMeta(detail);
+    notificationDetail.innerHTML = `
+      <div class="notification-detail-content">
+        <div class="notification-detail-title"><span class="message-icon ${detail.level}">${detail.icon}</span><div><strong>${detail.title}</strong><span>${detail.category} · ${typeLabel}</span></div></div>
+        <p>${detail.body}</p>
+        <div class="message-meta">${meta.map(value => `<span>${value ?? "--"}</span>`).join("")}</div>
+      </div>
+      ${customOrderAction(detail) ? '<footer class="message-actions"><button class="primary" type="button" data-order-link>查看相关订单</button></footer>' : ""}`;
+  } else {
+    notificationList.innerHTML = rows.length ? rows.map(message => `
+      <button class="notification-item ${message.unread ? "unread" : ""}" data-message-id="${message.id}" type="button">
+        <span class="message-icon ${message.level}">${message.icon}</span>
+        <span class="message-copy"><span class="message-title">${message.title}<i class="message-status">${message.category === "订单" ? `${message.orderLevel} · ${message.event}` : message.category === "市场" ? `${message.market} · ${message.event}` : message.event}</i></span><span class="message-summary">${message.summary}</span></span>
+        <span class="message-time">${message.time}</span>
+      </button>`).join("") : '<div class="notification-empty">暂无消息</div>';
+    notificationDetail.innerHTML = "";
+  }
 }
-
 
 let toastTimer;
 function notify(message) {
@@ -568,3 +639,12 @@ renderShortcutValues();
 renderOrders();
 renderNotifications();
 
+
+const fullMessages = MessageCenter.create({
+  rows:notifications, meta:notificationMeta, onRead:renderNotifications,
+  orderAction:customOrderAction, goToOrder:goToCustomOrder,
+});
+NoticeChannels.bindSamples(noticeChannels, notifications, () => {
+  renderNotifications();
+  fullMessages.refresh();
+});

@@ -43,10 +43,28 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .notification-subfilters { display: none; height: 40px; align-items: center; gap: 7px; padding: 0 14px; border-bottom: 1px solid #edf0f3; background: #fafbfd; }
 .notification-popover.has-subfilters .notification-subfilters { display: flex; }
 .notification-subfilters button { height: 24px; padding: 0 10px; border: 1px solid #dce2e8; border-radius: 12px; color: #66717b; background: #fff; cursor: pointer; font-size: 11px; }
-.notification-subfilters button.active { border-color: #9cc4f8; color: #1e73dd; background: #eaf3ff; }
+.notification-subfilters button.active { border-color: #2f80ed; color: #fff; background: #2f80ed; }
+.notification-filter-current { margin-left: auto; color: #1e73dd; font-size: 11px; font-weight: 600; white-space: nowrap; }
 .notification-body { height: calc(100% - 94px); display: flex; flex-direction: column; }
 .notification-popover.has-subfilters .notification-body { height: calc(100% - 134px); }
-.notification-list { min-height: 0; flex: 1; overflow-y: auto; }
+.notification-list { min-height: 0; flex: 1; overflow-y: auto; overflow-x: hidden; }
+.notification-list[hidden], .notification-detail[hidden], .notification-tabs[hidden], .notification-subfilters[hidden], #notificationListHeader[hidden], #notificationDetailHeader[hidden], #markAllNotificationsRead[hidden] { display: none !important; }
+.notification-detail-header { display: flex; flex: 1; align-items: center; gap: 12px; }
+.notification-detail-header button { flex: none; padding: 5px 0; }
+.notification-detail-header strong { font-size: 15px; }
+.notification-detail-header span { margin-left: auto; white-space: nowrap; }
+.notification-popover.detail-view .notification-tabs, .notification-popover.detail-view .notification-subfilters { display: none; }
+.notification-popover.detail-view .notification-body { height: calc(100% - 52px); }
+.notification-popover.detail-view .notification-detail { display: flex; flex: 1; flex-direction: column; min-height: 0; max-height: none; overflow: hidden; padding: 0; border-top: 0; box-shadow: none; }
+.notification-detail-content { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 20px 18px; }
+.notification-detail-title { display: flex; align-items: flex-start; gap: 11px; min-width: 0; }
+.notification-detail-title > div { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.notification-detail-title strong { color: #24292f; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+.notification-detail-title > div span { color: #7b8690; font-size: 11px; }
+.notification-detail-content > p { margin: 20px 0; color: #56616c; font-size: 12px; line-height: 1.75; overflow-wrap: anywhere; }
+.notification-detail .message-meta { grid-template-columns: 84px minmax(0,1fr); gap: 8px; margin-bottom: 0; }
+.notification-detail .message-meta span:nth-child(even) { min-width: 0; overflow-wrap: anywhere; }
+.notification-detail .message-actions { flex: none; padding: 12px 14px 15px; border-top: 1px solid #edf0f3; }
 .notification-item { position: relative; width: 100%; min-height: 73px; display: grid; grid-template-columns: 32px minmax(0,1fr) 42px; gap: 10px; align-items: start; padding: 11px 12px; border: 0; border-bottom: 1px solid #edf0f3; text-align: left; background: #fff; cursor: pointer; }
 .notification-item:hover { background: #f7f9fc; }.notification-item.selected { background: #eaf3ff; }.notification-item.unread::after { content: ""; position: absolute; right: 9px; top: 31px; width: 6px; height: 6px; border-radius: 50%; background: #2f80ed; }
 .message-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; font-size: 14px; font-weight: 600; }.message-icon.success { color: #01947d; background: #dff6ef; }.message-icon.danger { color: #db3f4e; background: #fee9ec; }.message-icon.warning { color: #b46b08; background: #fff0d5; }.message-icon.info { color: #2673cc; background: #e6f1ff; }
@@ -228,8 +246,8 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .orders-table { min-width: 1120px; }.orders-table th { height: 36px; }.orders-table td { height: 34px; text-align: center; }
 .orders-table .empty-row td { height: 90px; color: #a0a7ae; background: #fff; }
 
-.toast { position: fixed; left: 50%; bottom: 36px; z-index: 100; padding: 9px 16px; border-radius: 4px; color: #fff; background: rgba(35,40,46,.9); box-shadow: 0 8px 22px rgba(0,0,0,.18); opacity: 0; transform: translate(-50%, 10px); transition: .2s ease; pointer-events: none; }
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast { position: fixed; top: calc(var(--titlebar) + 10px); right: 16px; z-index: 150; max-width: min(380px, calc(100vw - 32px)); padding: 9px 16px; border-radius: 4px; color: #fff; background: rgba(35,40,46,.9); box-shadow: 0 8px 22px rgba(0,0,0,.18); opacity: 0; transform: translateY(-8px); transition: .2s ease; pointer-events: none; line-height: 1.5; }
+.toast.show { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 1150px) {
   .workspace { grid-template-rows: 452px minmax(170px, 1fr); }
@@ -238,3 +256,17 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
   .holdings-filter-row { grid-template-columns: repeat(3, minmax(115px, 1fr)); }
 }
 
+
+.business-notice-popup { position:fixed; top:46px; right:16px; z-index:160; display:flex; gap:12px; align-items:flex-start; width:min(360px,calc(100vw - 32px)); padding:12px 14px; border:1px solid #d5dbe2; border-left:3px solid #2e71c9; border-radius:6px; color:#20262d; background:#fff; box-shadow:0 8px 24px #12233422; }
+.business-notice-popup strong { display:block; margin-bottom:4px; }
+.business-notice-popup button { margin-left:auto; border:0; background:transparent; color:#677582; cursor:pointer; }
+.has-pending-reminder .business-notice-popup { top:106px; }
+
+.notice-related-order td { background:#eaf3ff; }
+
+.algorithm-error { color:#b13328; margin-top:10px!important; }
+
+.login-preview { position:absolute; inset:0; width:100%; height:100%; border:0; z-index:8; background:#fff; }
+.user-label:is(button) { background:none; border:0; cursor:pointer; }
+
+.nav-item[hidden],.login-preview[hidden] { display:none; }

@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Custom端下单面板高保真交互原型">
   <title>Custom Client Prototype</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="message-center.css">
+    <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="ticket-settings.css">
+  <link rel="stylesheet" href="custom-futures.css">
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true">
@@ -28,20 +31,22 @@
     <header class="titlebar">
       <div class="brand-logo">m</div>
       <div class="product-name">对冲台客户端 · Custom原型</div>
-      <div class="user-label"><svg><use href="#i-user"></use></svg><span>Custom Demo</span></div>
+      <button class="user-label" id="loginPreviewButton" type="button" title="邮箱登录与自选同步"><svg><use href="#i-user"></use></svg><span>Custom Demo</span></button>
       <div class="notification-center">
         <button id="notificationBell" class="notification-bell" type="button" aria-label="消息通知" aria-expanded="false">
           <svg><use href="#i-bell"></use></svg><span id="notificationBadge" class="notification-badge">3</span>
         </button>
         <section id="notificationPopover" class="notification-popover" hidden aria-label="消息中心">
           <header class="notification-head">
-            <div><strong>消息通知</strong><span id="notificationUnreadText">3 条未读</span></div>
+            <div id="notificationListHeader"><div><strong>消息通知</strong><span id="notificationUnreadText">3 条未读</span></div></div>
+            <div id="notificationDetailHeader" hidden><button id="backToNotificationList" type="button">‹ 返回列表</button><strong>消息详情</strong><span id="notificationDetailDate"></span></div>
             <button id="markAllNotificationsRead" type="button">全部已读</button>
           </header>
           <nav id="notificationTabs" class="notification-tabs" aria-label="消息分类"></nav>
           <nav id="notificationSubFilters" class="notification-subfilters" aria-label="消息二级筛选"></nav>
           <div class="notification-body">
             <div id="notificationList" class="notification-list"></div>
+            <footer id="notificationFooter" class="notification-footer"><button id="openFullNotifications" type="button">全部消息 ›</button></footer>
             <article id="notificationDetail" class="notification-detail"></article>
           </div>
         </section>
@@ -56,6 +61,7 @@
     </header>
 
     <aside class="sidebar">
+      <button type="button" data-view="login" class="nav-item" hidden>账户</button>
       <nav>
         <button class="nav-item active" data-view="trade" type="button">
           <svg><use href="#i-trade"></use></svg><span>交易</span>
@@ -86,6 +92,9 @@
             <div><span>持仓市值</span><strong>1,869,768.00</strong></div>
             <div><span>实现盈亏</span><strong class="green">0.00</strong></div>
             <div><span>浮动盈亏</span><strong class="orange">944,800.00</strong></div>
+            <div><span>当日买入成交金额</span><strong>1,250,000.00</strong></div>
+            <div><span>当日卖出成交金额</span><strong>842,600.00</strong></div>
+            <div><span>当日盈亏</span><strong>12,460.00</strong></div>
           </div>
           <div class="asset-holdings-note"><span>持仓明细请在“数据 - 持仓信息”中查看</span><button type="button" data-open-holdings>查看持仓信息　›</button></div>
         </article>
@@ -125,6 +134,7 @@
             <div></div><div class="available-hint">可买数量 <b>25,000</b></div>
             <label>下单金额</label><div class="amount-field"><output id="amountValue">1,080.00</output><span>CNY</span></div>
             <label>订单模式</label><select><option>LowTouch</option><option>HighTouch</option></select>
+            <label for="customAlgorithm">算法类型</label><select id="customAlgorithm"><option>无</option><option>TWAP</option></select>
           </div>
           <button id="expandOrder" class="expand-button" type="button">展开 <svg><use href="#i-chevron"></use></svg></button>
           <div id="orderExtra" class="order-extra" hidden><span>订单备注</span><input placeholder="选填"></div>
@@ -146,6 +156,7 @@
           </table>
         </div>
       </section>
+      <iframe title="邮箱登录与自选同步" id="loginPreview" class="login-preview" hidden></iframe>
       <section id="dataWorkspace" class="data-workspace" hidden aria-label="数据持仓信息"></section>
     </main>
     <section id="customSettingsDialog" class="custom-settings-dialog" role="dialog" aria-labelledby="customSettingsTitle" hidden>
@@ -179,7 +190,12 @@
     </section>
     <div id="toast" class="toast" role="status"></div>
   </div>
-  <script src="app.js"></script>
+  <script src="notification-channels.js"></script>
+    <script src="message-center.js"></script>
+    <script src="ticket-settings.js"></script>
+    <script src="algorithm-order.js"></script>
+    <script src="app.js"></script>
+    <script src="custom-futures.js"></script>
 </body>
 </html>
 
