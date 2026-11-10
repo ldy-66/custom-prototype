@@ -34,6 +34,8 @@ const cfEscape = value => String(value).replaceAll("&","&amp;").replaceAll("<","
 const cfMoney = value => Number(value).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
 const cfContract = () => cfContracts[cf.contract];
 const cfOffset = (offset,contract=cfContract()) => ({open:"开仓",today:"平今",close:contract.split ? "平昨" : "平仓",auto:`自动（优先平${cfSettings.priority === "today" ? "今" : "昨"}）`}[offset]);
+// Demo account mapping. The production ticket will read the existing account permission.
+const cfIsTwoSide = () => cf.account === "交易账户02";
 const cfFunds = () => cf.account === "交易账户01" ? 100000 : 65000;
 
 function cfPosition(side) {
@@ -45,26 +47,15 @@ function cfPosition(side) {
     availableToday:Math.max(0,base.today-base.frozenToday-reserved.today),availableYesterday:Math.max(0,base.yesterday-base.frozenYesterday-reserved.yesterday)};
 }
 function cfOpenLimit() { return Math.max(0,Math.min(25,Math.floor(cfFunds()/(Math.max(1,cf.price)*cfContract().multiplier*cfContract().margin)))); }
-function cfAvailable() {
-  const p = cfPosition(cf.direction === "buy" ? "空头" : "多头");
-  if (cf.offset === "open") return cfOpenLimit();
-  if (cf.offset === "auto") return p.availableToday+p.availableYesterday+cfOpenLimit();
-  if (!cfContract().split) return p.availableToday+p.availableYesterday;
-  return cf.offset === "today" ? p.availableToday : p.availableYesterday;
+function cfOrderInputs() {
+  const position = cfPosition(cf.direction === "buy" ? "空头" : "多头");
+  return {
+    ...position, qty: cf.qty, offset: cfIsTwoSide() ? "auto" : cf.offset,
+    split: cfContract().split, priority: cfSettings.priority, openLimit: cfOpenLimit(),
+  };
 }
-function cfPlan() {
-  if (cf.offset !== "auto") return [{offset:cf.offset,qty:cf.qty}];
-  const p=cfPosition(cf.direction === "buy" ? "空头" : "多头");
-  let remaining=cf.qty;
-  const plan=[];
-  for (const bucket of cfSettings.priority === "today" ? ["today","yesterday"] : ["yesterday","today"]) {
-    const qty=Math.min(remaining,p[bucket === "today" ? "availableToday" : "availableYesterday"]);
-    if (qty) plan.push({offset:bucket === "today" ? "today" : "close",qty});
-    remaining-=qty;
-  }
-  if (remaining) plan.push({offset:"open",qty:remaining});
-  return plan;
-}
+function cfAvailable() { return FuturesOrderPlan.available(cfOrderInputs()); }
+function cfPlan() { return FuturesOrderPlan.plan(cfOrderInputs()); }
 function cfSelect(label,key,options,value) {
   return `<label class="cf-field"><span>${label}</span><select aria-label="${label}" data-cf-select="${key}">${options.map(item=>{const o=typeof item === "object" ? item : {value:item,label:item};return `<option value="${o.value}" ${String(value) === String(o.value) ? "selected" : ""}>${cfEscape(o.label)}</option>`;}).join("")}</select></label>`;
 }
@@ -99,23 +90,22 @@ function cfQuote() {
 function cfTicket() {
   const c=cfContract(),buy=cf.direction === "buy",p=cfPosition(buy ? "空头" : "多头");
   const offsets=c.split ? ["auto","open","today","close"] : ["open","close"];
-  const availableLabel=cf.offset === "auto" ? (buy ? "可买数量" : "可卖数量") : `${buy ? "可买" : "可卖"}${cf.offset === "open" ? "开" : c.split ? cf.offset === "today" ? "平今" : "平昨" : "平"}`;
+  const availableLabel=cfIsTwoSide() || cf.offset === "auto" ? (buy ? "可买数量" : "可卖数量") : `${buy ? "可买" : "可卖"}${cf.offset === "open" ? "开" : c.split ? cf.offset === "today" ? "平今" : "平昨" : "平"}`;
   return `<article class="panel cf-ticket"><header class="panel-title">交易下单</header><div class="cf-ticket-tabs"><button type="button" class="active">期货交易</button><button type="button" disabled>自设套利</button><button type="button" disabled>标准套利</button></div><div class="cf-ticket-scroll">
-    ${cfSelect("交易账户","account",["交易账户01","交易账户02"],cf.account)}
+    ${cfSelect("交易账户","account",[{value:"交易账户01",label:"交易账户01（4-side）"},{value:"交易账户02",label:"交易账户02（2-side）"}],cf.account)}
     ${cfSelect("交易对手名称","customer",["演示交易对手01","演示交易对手02"],cf.customer)}
     ${cfSelect("资金账号","fund",["DEMO-F01","DEMO-F02"],cf.fund)}
     ${cfSelect("框架名称","frame",["期货框架01","期货框架02"],cf.frame)}
     ${cfSelect("订单类型","orderType",["限价单"],"限价单")}
     ${cfSelect("合约代码","contract",cfContracts.map((item,index)=>({value:index,label:`${item.code} ${item.name}`})),cf.contract)}
     <div class="cf-field"><span>买卖方向</span><div class="cf-direction"><button type="button" class="${buy ? "active" : ""}" data-cf-direction="buy" aria-pressed="${buy}">买入</button><button type="button" class="${buy ? "" : "active sell"}" data-cf-direction="sell" aria-pressed="${!buy}">卖出</button></div></div>
-    <div class="cf-field"><span>开平标识</span><div class="cf-offsets count-${offsets.length}" role="group" aria-label="开平标识">${offsets.map(value=>`<button type="button" data-cf-offset="${value}" class="${cf.offset === value ? "active" : ""}" aria-pressed="${cf.offset === value}">${cfOffset(value)}</button>`).join("")}</div></div>
+    ${cfIsTwoSide() ? "" : `<div class="cf-field"><span>开平标识</span><div class="cf-offsets count-${offsets.length}" role="group" aria-label="开平标识">${offsets.map(value=>`<button type="button" data-cf-offset="${value}" class="${cf.offset === value ? "active" : ""}" aria-pressed="${cf.offset === value}">${cfOffset(value)}</button>`).join("")}</div></div>`}
     <div class="cf-availability"><span>${availableLabel} <b id="cfAvailable">${cfAvailable()}</b></span>${c.split ? `<span>可平今 <b>${p.availableToday}</b></span><span>可平昨 <b>${p.availableYesterday}</b></span>` : `<span>可平 <b>${p.availableToday+p.availableYesterday}</b> 手</span>`}</div>
     ${cfStepper("订单价格","price",cf.price,c.tick)}${cfStepper("委托数量","qty",cf.qty,1)}
     <div class="cf-fractions">${[[.25,"1/4"],[1/3,"1/3"],[.5,"1/2"],[1,"全仓"]].map(([value,label])=>`<button type="button" data-cf-fraction="${value}">${label}</button>`).join("")}</div>
     <details class="ticket-preset"><summary>常用数量</summary>${TicketSettings.quantityButtons(cfSettings.quantities, "data-cf-preset")}</details>
     ${cfSelect("订单模式","mode",["LowTouch","HighTouch"],cf.mode)}
-    ${cf.error ? `<div class="cf-error" role="alert">${cfEscape(cf.error)}</div>` : ""}
-  </div><div class="cf-order-actions"><button type="button" class="cf-icon" data-cf-settings aria-label="期货下单自定义设置">⚙</button><button type="button" class="cf-icon" data-cf-reset aria-label="重置期货下单">↻</button><button type="button" class="cf-submit ${buy ? "" : "sell"}" data-cf-submit>${buy ? "买入" : "卖出"}${cfOffset(cf.offset)}</button></div></article>`;
+  </div>${cf.error ? `<div class="cf-error" role="alert">${cfEscape(cf.error)}</div>` : ""}<div class="cf-order-actions"><button type="button" class="cf-icon" data-cf-settings aria-label="期货下单自定义设置">⚙</button><button type="button" class="cf-icon" data-cf-reset aria-label="重置期货下单">↻</button><button type="button" class="cf-submit ${buy ? "" : "sell"}" data-cf-submit>${buy ? "买入" : "卖出"}${cfIsTwoSide() ? "" : cfOffset(cf.offset)}</button></div></article>`;
 }
 function cfOrders() {
   const live=row=>row.status !== "已撤";
@@ -128,7 +118,7 @@ function cfModal() {
   let title="",body="",action="";
   {
     title="期货订单确认";
-    body=`<dl class="cf-confirm"><dt>交易账户</dt><dd>${cf.account}</dd><dt>交易对手名称</dt><dd>${cf.customer}</dd><dt>资金账号</dt><dd>${cf.fund}</dd><dt>框架名称</dt><dd>${cf.frame}</dd><dt>合约代码</dt><dd>${cfContract().code}</dd><dt>买卖方向</dt><dd>${cf.direction === "buy" ? "买入" : "卖出"}</dd><dt>开平标识</dt><dd>${cfOffset(cf.offset)}</dd><dt>订单价格</dt><dd>${cfMoney(cf.price)}</dd><dt>委托数量</dt><dd>${cf.qty} 手</dd><dt>交易日</dt><dd>2026-11-06</dd></dl><table class="data-table cf-plan"><thead><tr><th>报送开平</th><th>数量（手）</th></tr></thead><tbody>${cfPlan().map(row=>`<tr><td>${cfOffset(row.offset)}</td><td>${row.qty}</td></tr>`).join("")}</tbody></table>`;
+    body=`<dl class="cf-confirm"><dt>交易账户</dt><dd>${cf.account}</dd><dt>交易对手名称</dt><dd>${cf.customer}</dd><dt>资金账号</dt><dd>${cf.fund}</dd><dt>框架名称</dt><dd>${cf.frame}</dd><dt>合约代码</dt><dd>${cfContract().code}</dd><dt>买卖方向</dt><dd>${cf.direction === "buy" ? "买入" : "卖出"}</dd>${cfIsTwoSide() ? "" : `<dt>开平标识</dt><dd>${cfOffset(cf.offset)}</dd>`}<dt>订单价格</dt><dd>${cfMoney(cf.price)}</dd><dt>委托数量</dt><dd>${cf.qty} 手</dd><dt>交易日</dt><dd>2026-11-06</dd></dl><table class="data-table cf-plan"><thead><tr><th>报送开平</th><th>数量（手）</th></tr></thead><tbody>${cfPlan().map(row=>`<tr><td>${cfOffset(row.offset)}</td><td>${row.qty}</td></tr>`).join("")}</tbody></table>`;
     action='<button type="button" class="cf-secondary" data-cf-close-modal>返回修改</button><button type="button" class="cf-primary" data-cf-confirm>确认提交</button>';
   }
   return `<div class="cf-modal-mask" role="dialog" aria-modal="true" aria-labelledby="cfModalTitle"><section class="cf-dialog"><header><h3 id="cfModalTitle">${title}</h3><button type="button" data-cf-close-modal aria-label="关闭">×</button></header><div class="cf-dialog-body">${body}</div><footer>${action}</footer></section></div>`;
@@ -148,8 +138,7 @@ function cfValidate() {
   if (!Number.isSafeInteger(cf.qty) || cf.qty < 1) return "委托数量须为大于 0 的整数手。";
   if (!Number.isFinite(cf.price) || cf.price <= 0) return "请输入有效的订单价格。";
   if (Math.abs(cf.price/cfContract().tick-Math.round(cf.price/cfContract().tick)) > 1e-6) return `订单价格须为最小变动价位 ${cfContract().tick} 的整数倍。`;
-  if (cf.qty > cfAvailable()) return `可用数量不足，当前最多可委托 ${cfAvailable()} 手。`;
-  return "";
+  return FuturesOrderPlan.rejection(cfOrderInputs());
 }
 function cfConfirm() {
   cf.error=cfValidate();
@@ -157,6 +146,7 @@ function cfConfirm() {
   const p=cfPosition(cf.direction === "buy" ? "空头" : "多头"),plan=cfPlan();
   const reserve={...(cf.reservations.get(p.key) || {today:0,yesterday:0})};
   let remainingToday=p.availableToday;
+  const submitted=[];
   for (const item of plan) {
     let today=0,yesterday=0;
     if (item.offset !== "open") {
@@ -164,8 +154,9 @@ function cfConfirm() {
       else {today=Math.min(item.qty,remainingToday);yesterday=item.qty-today;remainingToday-=today;}
     }
     reserve.today+=today;reserve.yesterday+=yesterday;
-    cf.orders.unshift({id:`CF${String(cf.nextId++).padStart(5,"0")}`,contract:{...cfContract()},fund:cf.fund,frame:cf.frame,direction:cf.direction,offset:item.offset,price:cf.price,qty:item.qty,mode:cf.mode,status:cf.mode === "HighTouch" ? "待确认" : "已报",reservation:{key:p.key,today,yesterday}});
+    submitted.push({id:`CF${String(cf.nextId++).padStart(5,"0")}`,contract:{...cfContract()},fund:cf.fund,frame:cf.frame,direction:cf.direction,offset:item.offset,price:cf.price,qty:item.qty,mode:cf.mode,status:cf.mode === "HighTouch" ? "待确认" : "已报",reservation:{key:p.key,today,yesterday}});
   }
+  cf.orders.unshift(...submitted);
   cf.reservations.set(p.key,reserve);cf.modal=null;cf.filter="全部";
   if (!cfSettings.keep.includes("交易账户")) cf.account="交易账户01";
   if (!cfSettings.keep.includes("交易对手名称")) cf.customer="演示交易对手01";
@@ -189,6 +180,7 @@ function cfCancel(id) {
 function cfBind() {
   cfRoot.querySelectorAll("[data-cf-select]").forEach(select=>select.addEventListener("change",()=>{
     const key=select.dataset.cfSelect;cf[key]=key === "contract" ? Number(select.value) : select.value;
+    if (key === "account") cf.offset="open";
     if(key === "contract"){cf.price=cfContract().price;if(!cfContract().split && ["auto","today"].includes(cf.offset))cf.offset="close";}
     cf.error="";cfRender();
   }));
