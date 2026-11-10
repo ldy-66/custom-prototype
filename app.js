@@ -367,16 +367,18 @@ submitOrder.addEventListener("click", () => {
 document.querySelector("#batchOrder").addEventListener("click", () => notify("请选择待批量下单的委托"));
 
 function renderHoldingsPage() {
-  const showBuckets = state.positionMode === "对客" && state.positionMarket === "期货";
+  const showBuckets = state.positionMode !== "明细" && state.positionMarket === "期货";
   const columns = showBuckets ? [...holdingColumns[state.positionMode], "今仓", "昨仓", "今仓冻结", "昨仓冻结"] : holdingColumns[state.positionMode];
   const boardOptions = ["全部", "主板", "科创板", "创业板", "港股", "美股"].map(board => "<option value=\"" + board + "\"" + (state.positionBoard === board ? " selected" : "") + ">" + board + "</option>").join("");
   const boardFilter = state.positionMarket === "证券" ? "<select aria-label=\"板块\" data-position-board>" + boardOptions + "</select>" : "";
   let rows = positionRecords.filter(row => row.marketType === state.positionMarket && (state.positionMarket !== "证券" || state.positionBoard === "全部" || row.board === state.positionBoard)).map(row => columns.map(column => row[state.positionMode === "对客" ? "client" : state.positionMode === "对冲" ? "hedge" : "detail"][column] ?? "—"));
   if (showBuckets) rows = ["多头", "空头"].map(side => {
-    const position = cfPosition(side);
+    const position = state.positionMode === "对冲" ? cfHedge(side) : cfPosition(side);
     return {
       ...Object.fromEntries(columns.map((column, i) => [column, rows[0]?.[i] ?? "—"])), "交易账户": cf.account,
       "资金账号": cf.fund,
+      "对冲渠道": "渠道A",
+      "对冲方资金账号": "DEMO-HEDGE-01",
       "交易对手名称": cf.customer,
       "框架名称": cf.frame, "合约代码": cfContract().code, "合约名称": cfContract().name,
       "持仓类型": side, "持仓数量": position.today + position.yesterday,
