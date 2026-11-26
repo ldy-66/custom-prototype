@@ -27,3 +27,8 @@
 .notice-query input[name=keyword] { width:min(230px,100%); }
 .notification-footer { padding:7px 12px; text-align:right; border-top:1px solid #e7eaee; }
 .notification-footer[hidden] { display:none; }
+.notice-window .notice-type-filters { display:flex; gap:7px; flex-wrap:wrap; padding:7px 0; border-bottom:1px solid #edf0f4; }
+.notification-popover .notification-type-row { flex-basis:100%; display:flex; flex-wrap:wrap; gap:7px; }
+.notification-popover.has-subfilters .notification-subfilters { flex-wrap:wrap; height:auto; padding-block:7px; }
+.notice-type-filters button { min-height:24px; padding:0 10px; border:1px solid #dce2e8; border-radius:12px; background:#fff; color:#526070; cursor:pointer; }
+.notice-type-filters button.active { color:#fff; background:#2f80ed; border-color:#2f80ed; }

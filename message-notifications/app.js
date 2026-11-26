@@ -22,23 +22,12 @@ const state = {
   notificationFilter: "全部",
   notificationHandling: "全部",
   notificationSubFilter: "全部",
+  notificationTypeFilter: "全部",
   selectedNotification: null,
   notificationPage: "list",
 };
 
-const notifications = [
-  { id: 1, category: "订单", orderLevel: "母单", event: "拒单", level: "danger", icon: "!", title: "母单拒单", summary: "000001.SZ 母单未通过 OMS 校验。", body: "该母单在进入后续处理前被拒绝，请根据拒单原因调整委托信息后重新提交。", time: "10:21", unread: true, order: "P-ORD-DEMO-01", parentOrder: "P-ORD-DEMO-01", childOrder: "--", account: "DEMO-04501", rejectStage: "OMS 校验", rejectReason: "委托价格超出当前允许范围" },
-  { id: 2, category: "订单", orderLevel: "子单", event: "拒单", level: "danger", icon: "!", title: "子单拒单", summary: "600000.SH 子单在柜台报送环节被拒绝。", body: "该子单报送柜台后被拒绝，母单状态与剩余可执行数量请在订单详情中查看。", time: "10:18", unread: true, order: "C-ORD-DEMO-02", parentOrder: "P-ORD-DEMO-02", childOrder: "C-ORD-DEMO-02", account: "DEMO-04502", rejectStage: "柜台报送", rejectReason: "柜台返回：申报数量不符合要求" },
-  { id: 3, category: "订单", orderLevel: "母单", event: "已提交", level: "success", icon: "✓", title: "母单提交成功", summary: "000001.SZ 买入母单已提交。", body: "买入母单已成功提交，后续拆单与执行结果可在委托列表中查看。", time: "10:05", unread: true, order: "P-ORD-DEMO-03", parentOrder: "P-ORD-DEMO-03", childOrder: "--", account: "DEMO-04501" },
-  { id: 4, category: "订单", orderLevel: "子单", event: "已成交", level: "success", icon: "✓", title: "子单全部成交", summary: "600000.SH 子单已全部成交。", body: "该子单已全部成交，成交结果已同步至对应母单与委托列表。", time: "09:52", unread: false, order: "C-ORD-DEMO-04", parentOrder: "P-ORD-DEMO-04", childOrder: "C-ORD-DEMO-04", account: "DEMO-04502" },
-  { id: 5, category: "市场", market: "沪深", event: "休市提醒", level: "info", icon: "休", title: "沪深市场休市提醒", summary: "请关注下一休市日的下单与成交安排。", body: "沪深市场下一休市日全天暂停交易，请提前安排委托；实际日历以交易所发布为准。", time: "09:40", unread: true, closedAt: "下一休市日 全天", resumeAt: "下一交易日 09:30", timezone: "北京时间" },
-  { id: 6, category: "市场", market: "港股", event: "休市提醒", level: "info", icon: "休", title: "港股市场休市提醒", summary: "请关注下一休市日及恢复交易时间。", body: "港股市场下一休市日全天暂停交易，请提前安排委托；实际日历以交易所发布为准。", time: "09:35", unread: false, closedAt: "下一休市日 全天", resumeAt: "下一交易日 09:30", timezone: "北京时间" },
-  { id: 7, category: "市场", market: "美股", event: "休市提醒", level: "info", icon: "休", title: "美股市场休市提醒", summary: "请关注当地休市安排与时区差异。", body: "美股市场下一休市日全天暂停交易，请关注当地时区与夏令时变化；实际日历以交易所发布为准。", time: "09:30", unread: false, closedAt: "下一休市日 全天", resumeAt: "下一交易日 09:30", timezone: "市场当地时间" },
-  { id: 8, category: "风控", event: "预警", level: "warning", icon: "!", title: "账户可用资金较低", summary: "当前可用资金接近预警阈值。", body: "当前账户可用资金已接近预警阈值，请关注后续委托占用。", time: "09:20", unread: false, order: "--", account: "DEMO-04501" },
-  { id: 9, category: "系统", event: "安全", level: "info", icon: "i", title: "新设备登录提醒", summary: "账号于 09:12 在新设备登录。", body: "检测到当前账号在新设备登录。如非本人操作，请及时联系系统管理员。", time: "09:12", unread: false, order: "--", account: "Custom Demo" },
-  ...MessageCenter.examples(false),
-];
-
+const notifications = MessageCenter.examples("Custom");
 
 const priceInput = document.querySelector("#priceInput");
 const quantityInput = document.querySelector("#quantityInput");
@@ -97,7 +86,7 @@ document.addEventListener("keydown", event => {
 });
 
 document.querySelector("#markAllNotificationsRead").addEventListener("click", () => {
-  notifications.forEach(message => { message.unread = false; });
+  MessageCenter.visibleRows(notifications, noticeChannels).forEach(message => { message.unread = false; });
   renderNotifications();
 });
 
@@ -106,15 +95,17 @@ notificationTabs.addEventListener("click", event => {
   if (!button) return;
   state.notificationFilter = button.dataset.filter;
   state.notificationSubFilter = "全部";
+  state.notificationTypeFilter = "全部";
   state.selectedNotification = null;
   state.notificationPage = "list";
   renderNotifications();
 });
 
 notificationSubFilters.addEventListener("click", event => {
-  const button = event.target.closest("[data-sub-filter]");
+  const button = event.target.closest("[data-sub-filter], [data-type-filter]");
   if (!button) return;
-  state.notificationSubFilter = button.dataset.subFilter;
+  if (button.dataset.subFilter) state.notificationSubFilter = button.dataset.subFilter;
+  state.notificationTypeFilter = button.dataset.typeFilter || "全部";
   state.selectedNotification = null;
   state.notificationPage = "list";
   renderNotifications();
@@ -142,7 +133,7 @@ notificationList.addEventListener("click", event => {
 document.querySelector("#openFullNotifications").addEventListener("click", () => {
   state.notificationOpen = false;
   renderNotifications();
-  fullMessages.open(state.notificationFilter, state.notificationSubFilter, state.notificationHandling);
+  fullMessages.open(notificationSelection(), state.notificationHandling);
 });
 notificationDetail.addEventListener("click", event => {
   if (event.target.closest("[data-order-link]")) goToCustomOrder(notifications.find(row => row.id === state.selectedNotification));
@@ -350,19 +341,7 @@ function submitCustomOrder() {
     status: "已提交",
   });
   renderOrders();
-  const order = state.orders[0];
-  noticeChannels.dispatch({
-    message: "order.submit",
-    sound: "orderSuccess",
-    addMessage: () => {
-      const summary = `${order.symbol} ${order.direction}母单已提交。`;
-      notifications.unshift({id:Date.now(), category:"订单", orderLevel:"母单", event:"已提交",
-        level:"success", icon:"✓", title:"母单提交成功", summary, body:summary,
-        time:new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}),
-        unread:true, account:order.account, orderRef:order});
-      renderNotifications();
-    },
-  });
+  noticeChannels.dispatch({sound:"orderSuccess"});
 }
 submitOrder.addEventListener("click", () => {
   if (document.querySelector("#customAlgorithm").value !== "TWAP") return submitCustomOrder();
@@ -549,8 +528,8 @@ function renderOrders() {
     </tr>`).join("");
 }
 
-function filteredNotifications() {
-  return MessageCenter.list(notifications, state.notificationFilter, state.notificationSubFilter, state.notificationHandling);
+function notificationSelection() {
+  return MessageCenter.selection(noticeChannels, state.notificationFilter, state.notificationSubFilter, state.notificationTypeFilter);
 }
 
 function customOrderAction(item) {
@@ -573,17 +552,22 @@ function goToCustomOrder(item) {
 function notificationMeta(message) {
   if (message.category === "订单") {
     const rows = ["订单层级", message.orderLevel, "资金账号", message.account, "母单号", message.parentOrder, "子单号", message.childOrder];
-    if (message.event === "拒单") rows.push("拒单环节", message.rejectStage, "拒单原因", message.rejectReason);
+    if (message.noticeKey === "order.childReject") rows.push("拒单环节", message.rejectStage);
+    if (message.rejectReason) rows.push("失败原因", message.rejectReason);
     return rows;
   }
-  if (message.category === "市场") return ["市场", message.market, "休市时间", message.closedAt, "恢复时间", message.resumeAt, "时区", message.timezone];
   return ["资金账号", message.account, "相关订单", message.order];
 }
 
 function renderNotifications() {
-  const unread = notifications.filter(message => message.unread).length;
+  const available = MessageCenter.visibleRows(notifications, noticeChannels);
+  const filters = notificationSelection();
+  state.notificationFilter = filters.category;
+  state.notificationSubFilter = filters.group;
+  state.notificationTypeFilter = filters.type;
+  const unread = available.filter(message => message.unread).length;
   const detail = state.notificationPage === "detail"
-    ? notifications.find(message => message.id === state.selectedNotification) || null
+    ? available.find(message => message.id === state.selectedNotification) || null
     : null;
   const detailView = Boolean(detail);
   notificationBadge.textContent = unread ? String(unread) : "";
@@ -603,35 +587,20 @@ function renderNotifications() {
   document.querySelector("#notificationFooter").hidden = detailView;
   if (!detailView) state.notificationPage = "list";
 
-  const categories = MessageCenter.categoriesFor(noticeChannels);
-  if (!categories.includes(state.notificationFilter)) {
-    state.notificationFilter = "全部";
-    state.notificationSubFilter = "全部";
-    state.selectedNotification = null;
-    state.notificationPage = "list";
-  }
   notificationPopover.querySelector(".notice-handling")?.remove();
   if (!detailView) notificationSubFilters.insertAdjacentHTML("afterend", MessageCenter.handlingButtons(state.notificationHandling));
-  notificationTabs.innerHTML = categories.map(category => {
-    const count = category === "全部" ? notifications.length : notifications.filter(message => message.category === category).length;
-    return `<button class="${state.notificationFilter === category ? "active" : ""}" data-filter="${category}" type="button">${category} ${count}</button>`;
+  notificationTabs.innerHTML = filters.categories.map(category => {
+    const count = category === "全部" ? available.length : available.filter(message => message.category === category).length;
+    return `<button class="${filters.category === category ? "active" : ""}" data-filter="${category}" type="button">${category} ${count}</button>`;
   }).join("");
+  notificationSubFilters.innerHTML =
+    MessageCenter.filterButtons(filters.groupOptions, filters.group, "data-sub-filter", "")
+    + (filters.typeOptions.length ? `<div class="notification-type-row" aria-label="消息类型">${MessageCenter.filterButtons(filters.typeOptions, filters.type, "data-type-filter", "")}</div>` : "");
+  notificationPopover.classList.toggle("has-subfilters", filters.groupOptions.length > 0);
 
-  const subFilters = MessageCenter.filters(state.notificationFilter,false, noticeChannels);
-  if (state.notificationSubFilter !== "全部" && !subFilters.some(([value]) => value === state.notificationSubFilter)) {
-    state.notificationSubFilter = "全部";
-    state.selectedNotification = null;
-    state.notificationPage = "list";
-  }
-  const currentSubfilterLabel = subFilters.find(([value]) => value === state.notificationSubFilter)?.[1] || subFilters[0]?.[1] || "";
-  notificationSubFilters.innerHTML = `${subFilters.map(([value, label]) => `<button class="${state.notificationSubFilter === value ? "active" : ""}" data-sub-filter="${value}" aria-pressed="${value === state.notificationSubFilter}" type="button">${label}</button>`).join("")}${subFilters.length ? `<span class="notification-filter-current">当前筛选：${currentSubfilterLabel}</span>` : ""}`;
-  notificationPopover.classList.toggle("has-subfilters", subFilters.length > 0);
-
-  const rows = filteredNotifications();
+  const rows = MessageCenter.list(available, filters, state.notificationHandling);
   if (detailView) {
-    const typeLabel = detail.category === "订单"
-      ? `${detail.orderLevel} · ${detail.event}`
-      : detail.category === "市场" ? `${detail.market} · ${detail.event}` : detail.event;
+    const typeLabel = detail.group;
     const meta = notificationMeta(detail);
     notificationDetail.innerHTML = `
       <div class="notification-detail-content">
@@ -644,7 +613,7 @@ function renderNotifications() {
     notificationList.innerHTML = rows.length ? rows.map(message => `
       <button class="notification-item ${message.unread ? "unread" : ""}" data-message-id="${message.id}" type="button">
         <span class="message-icon ${message.level}">${message.icon}</span>
-        <span class="message-copy"><span class="message-title">${message.title}<i class="message-status">${message.category === "订单" ? `${message.orderLevel} · ${message.event}` : message.category === "市场" ? `${message.market} · ${message.event}` : message.event}</i></span><span class="message-summary">${message.summary}</span></span>
+        <span class="message-copy"><span class="message-title">${message.title}<i class="message-status">${message.category} · ${message.group}</i></span><span class="message-summary">${message.summary}</span></span>
         <span class="message-time">${message.time}</span>
       </button>`).join("") : '<div class="notification-empty">暂无消息</div>';
     notificationDetail.innerHTML = "";
